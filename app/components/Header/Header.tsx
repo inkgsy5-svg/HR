@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@app/theme/colors';
 import { spacing } from '@app/theme/spacing';
@@ -25,7 +25,15 @@ export default function Header({
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.sm }, style]}>
       <View style={styles.left}>
-        {showLogo ? <Text style={styles.logo}>HR</Text> : <Text style={styles.title}>{title}</Text>}
+        {showLogo ? (
+          <Image
+            source={require('../../../assets/images/hr-logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        ) : (
+          <Text style={styles.title}>{title}</Text>
+        )}
       </View>
       <View style={styles.right}>
         {onSearchPress && (
@@ -53,11 +61,9 @@ const styles = StyleSheet.create({
   },
   left: { flex: 1 },
   right: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  logo: {
-    color: colors.secondary,
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
-    letterSpacing: 2,
+  logoImage: {
+    width: 60,
+    height: 40,
   },
   title: {
     color: colors.textPrimary,

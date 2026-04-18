@@ -20,7 +20,7 @@ export default function BottomTabNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: '#2a2a2a',
           borderTopColor: colors.border,
           height: 60,
           paddingBottom: 8,

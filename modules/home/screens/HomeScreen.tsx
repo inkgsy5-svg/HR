@@ -1,5 +1,14 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ImageBackground,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -51,7 +60,7 @@ const MODULES = [
   },
   {
     id: 'resin',
-    label: 'Resina',
+    label: 'Cuadros de Resina',
     screen: 'Resin' as const,
     gradient: ['#001a1a', '#003a3a'] as const,
     accent: '#00BCD4',
@@ -65,7 +74,11 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>HR</Text>
+        <Image
+          source={require('../../../assets/images/logo-header.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <TouchableOpacity style={styles.searchBtn}>
           <Text style={styles.searchIcon}>🔍</Text>
         </TouchableOpacity>
@@ -73,21 +86,30 @@ export default function HomeScreen() {
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Promo Banner */}
-        <LinearGradient
-          colors={['#1a1200', '#3a2800', '#1a1200']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+        <ImageBackground
+          source={require('../../../assets/images/promo-bg.webp')}
           style={styles.promoBanner}
+          imageStyle={styles.promoBannerImage}
         >
-          <View style={styles.promoContent}>
-            <Text style={styles.promoEmoji}>⚡</Text>
-            <Text style={styles.promoTitle}>¡Promociones del día!</Text>
-            <Text style={styles.promoEmoji}>⚡</Text>
-          </View>
-          <TouchableOpacity style={styles.promoButton}>
-            <Text style={styles.promoButtonText}>VER OFERTAS</Text>
-          </TouchableOpacity>
-        </LinearGradient>
+          <LinearGradient
+            colors={['#00000066', '#00000033', '#00000066']}
+            style={styles.promoOverlay}
+          >
+            <View style={styles.promoContent}>
+              <Text style={styles.promoTitle}>¡Promociones del día!</Text>
+            </View>
+            <TouchableOpacity style={styles.promoButton}>
+              <LinearGradient
+                colors={['#FFD700', '#F5A623', '#FFD700']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.promoButtonGradient}
+              >
+                <Text style={styles.promoButtonText}>VER OFERTAS</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </LinearGradient>
+        </ImageBackground>
 
         {/* Module Cards */}
         <View style={styles.moduleList}>
@@ -117,7 +139,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: '#000000' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -127,12 +149,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  logo: {
-    color: colors.textPrimary,
-    fontSize: 28,
-    fontWeight: typography.fontWeight.bold,
-    fontStyle: 'italic',
-    letterSpacing: 2,
+  logoImage: {
+    width: 90,
+    height: 60,
   },
   searchBtn: { padding: spacing.xs },
   searchIcon: { fontSize: 22 },
@@ -142,36 +161,48 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     marginBottom: spacing.sm,
     borderRadius: borderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: '#F5A623',
+    overflow: 'hidden',
+    height: 120,
+  },
+  promoBannerImage: {
+    borderRadius: borderRadius.lg,
+  },
+  promoOverlay: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#F5A62366',
+    gap: spacing.sm,
   },
   promoContent: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
   },
-  promoEmoji: { fontSize: 20 },
   promoTitle: {
-    color: colors.textPrimary,
+    color: '#FFD700',
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
     textAlign: 'center',
+    textShadowColor: '#F5A623',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   promoButton: {
-    backgroundColor: colors.accent,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  promoButtonGradient: {
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     borderRadius: borderRadius.md,
   },
   promoButtonText: {
-    color: colors.black,
+    color: '#000000',
     fontWeight: typography.fontWeight.bold,
-    fontSize: typography.fontSize.sm,
-    letterSpacing: 1,
+    fontSize: typography.fontSize.base,
+    letterSpacing: 2,
   },
   moduleList: {
     paddingHorizontal: spacing.md,
