@@ -1,0 +1,13 @@
+# Archivos con credenciales — NUNCA subir a Git
+terraform.tfvars
+*.tfvars
+!*.tfvars.example
+
+# Estado local de Terraform (usamos S3 como backend)
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
+# Logs
+crash.log

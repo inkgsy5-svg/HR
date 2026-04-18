@@ -1,0 +1,17 @@
+# Copiar este archivo como terraform.tfvars y llenar los valores
+# NUNCA subir terraform.tfvars a Git (ya está en .gitignore)
+
+aws_region = "us-east-1"
+
+# Amazon Linux 2023 en us-east-1
+ami_id = "ami-0c02fb55956c7d316"
+
+# Nombre del Key Pair creado en AWS → EC2 → Key Pairs
+key_name = "hr-app-dev-key"
+
+# Credenciales de la base de datos
+db_username = "hrapp_admin"
+db_password = "CambiarPorPasswordSeguro123!"
+
+# Tu IP pública (buscar en: https://checkip.amazonaws.com)
+allowed_ssh_cidr = "TU.IP.AQUI/32"

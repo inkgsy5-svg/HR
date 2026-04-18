@@ -1,0 +1,214 @@
+name: Dev Environment — Control de costos AWS
+
+# ─────────────────────────────────────────────────────────────────
+#  HORARIO AUTOMÁTICO
+#  Encender:  9:00 AM  hora México (UTC-6) = 15:00 UTC
+#  Apagar:   7:00 PM  hora México (UTC-6) = 01:00 UTC del día siguiente
+#  Solo Lunes a Viernes
+# ─────────────────────────────────────────────────────────────────
+on:
+  schedule:
+    - cron: '0 15 * * 1-5'   # Encender: 9am México, Lun-Vie
+    - cron: '0 1 * * 2-6'    # Apagar:   7pm México, Lun-Vie (1am UTC día siguiente)
+
+  # Control manual desde GitHub → Actions → Run workflow
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Acción a ejecutar'
+        required: true
+        type: choice
+        options:
+          - start
+          - stop
+          - status
+      environment:
+        description: 'Ambiente'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  # ───────────────────────────────────────────────────────────────
+  #  DETERMINAR QUÉ ACCIÓN CORRER
+  # ───────────────────────────────────────────────────────────────
+  resolve-action:
+    name: Determinar acción
+    runs-on: ubuntu-latest
+    outputs:
+      action: ${{ steps.resolve.outputs.action }}
+
+    steps:
+      - name: Resolver acción
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "action=${{ github.event.inputs.action }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "0 15 * * 1-5" ]; then
+            echo "action=start" >> $GITHUB_OUTPUT
+          else
+            echo "action=stop" >> $GITHUB_OUTPUT
+          fi
+
+  # ───────────────────────────────────────────────────────────────
+  #  ENCENDER AMBIENTE
+  # ───────────────────────────────────────────────────────────────
+  start-environment:
+    name: Encender ambiente DEV
+    runs-on: ubuntu-latest
+    needs: resolve-action
+    if: needs.resolve-action.outputs.action == 'start'
+
+    steps:
+      - name: Configurar AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Encender EC2
+        run: |
+          echo "▶ Encendiendo EC2..."
+          aws ec2 start-instances \
+            --instance-ids ${{ secrets.DEV_EC2_INSTANCE_ID }}
+
+          echo "⏳ Esperando que EC2 esté running..."
+          aws ec2 wait instance-running \
+            --instance-ids ${{ secrets.DEV_EC2_INSTANCE_ID }}
+
+          EC2_IP=$(aws ec2 describe-instances \
+            --instance-ids ${{ secrets.DEV_EC2_INSTANCE_ID }} \
+            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+            --output text)
+
+          echo "✅ EC2 encendida — IP: $EC2_IP"
+          echo "EC2_IP=$EC2_IP" >> $GITHUB_ENV
+
+      - name: Encender RDS
+        run: |
+          echo "▶ Encendiendo RDS..."
+          STATUS=$(aws rds describe-db-instances \
+            --db-instance-identifier ${{ secrets.DEV_RDS_INSTANCE_ID }} \
+            --query 'DBInstances[0].DBInstanceStatus' \
+            --output text)
+
+          if [ "$STATUS" = "stopped" ]; then
+            aws rds start-db-instance \
+              --db-instance-identifier ${{ secrets.DEV_RDS_INSTANCE_ID }}
+
+            echo "⏳ Esperando que RDS esté disponible..."
+            aws rds wait db-instance-available \
+              --db-instance-identifier ${{ secrets.DEV_RDS_INSTANCE_ID }}
+
+            echo "✅ RDS encendida"
+          else
+            echo "ℹ️  RDS ya está en estado: $STATUS"
+          fi
+
+      - name: Resumen
+        run: |
+          echo "═══════════════════════════════════"
+          echo "  ✅ AMBIENTE DEV ENCENDIDO"
+          echo "  EC2 IP: $EC2_IP"
+          echo "  Hora: $(TZ='America/Mexico_City' date)"
+          echo "═══════════════════════════════════"
+
+  # ───────────────────────────────────────────────────────────────
+  #  APAGAR AMBIENTE
+  # ───────────────────────────────────────────────────────────────
+  stop-environment:
+    name: Apagar ambiente DEV
+    runs-on: ubuntu-latest
+    needs: resolve-action
+    if: needs.resolve-action.outputs.action == 'stop'
+
+    steps:
+      - name: Configurar AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Apagar RDS primero
+        run: |
+          echo "⏹ Apagando RDS..."
+          STATUS=$(aws rds describe-db-instances \
+            --db-instance-identifier ${{ secrets.DEV_RDS_INSTANCE_ID }} \
+            --query 'DBInstances[0].DBInstanceStatus' \
+            --output text)
+
+          if [ "$STATUS" = "available" ]; then
+            aws rds stop-db-instance \
+              --db-instance-identifier ${{ secrets.DEV_RDS_INSTANCE_ID }}
+            echo "✅ RDS enviada a detener"
+          else
+            echo "ℹ️  RDS ya está en estado: $STATUS"
+          fi
+
+      - name: Apagar EC2
+        run: |
+          echo "⏹ Apagando EC2..."
+          aws ec2 stop-instances \
+            --instance-ids ${{ secrets.DEV_EC2_INSTANCE_ID }}
+
+          echo "⏳ Esperando que EC2 esté stopped..."
+          aws ec2 wait instance-stopped \
+            --instance-ids ${{ secrets.DEV_EC2_INSTANCE_ID }}
+
+          echo "✅ EC2 apagada"
+
+      - name: Resumen
+        run: |
+          echo "═══════════════════════════════════"
+          echo "  ⏹  AMBIENTE DEV APAGADO"
+          echo "  Hora: $(TZ='America/Mexico_City' date)"
+          echo "  Próximo encendido: mañana 9am"
+          echo "═══════════════════════════════════"
+
+  # ───────────────────────────────────────────────────────────────
+  #  VER ESTADO ACTUAL
+  # ───────────────────────────────────────────────────────────────
+  check-status:
+    name: Ver estado del ambiente
+    runs-on: ubuntu-latest
+    needs: resolve-action
+    if: needs.resolve-action.outputs.action == 'status'
+
+    steps:
+      - name: Configurar AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Estado EC2
+        run: |
+          EC2_STATE=$(aws ec2 describe-instances \
+            --instance-ids ${{ secrets.DEV_EC2_INSTANCE_ID }} \
+            --query 'Reservations[0].Instances[0].State.Name' \
+            --output text)
+
+          EC2_IP=$(aws ec2 describe-instances \
+            --instance-ids ${{ secrets.DEV_EC2_INSTANCE_ID }} \
+            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+            --output text)
+
+          echo "EC2: $EC2_STATE (IP: $EC2_IP)"
+
+      - name: Estado RDS
+        run: |
+          RDS_STATE=$(aws rds describe-db-instances \
+            --db-instance-identifier ${{ secrets.DEV_RDS_INSTANCE_ID }} \
+            --query 'DBInstances[0].DBInstanceStatus' \
+            --output text)
+
+          echo "RDS: $RDS_STATE"
