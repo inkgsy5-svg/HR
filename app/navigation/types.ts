@@ -8,10 +8,9 @@ export type AuthStackParamList = {
 
 // Bottom Tabs
 export type BottomTabParamList = {
+  Profile: undefined;
   Home: undefined;
   Search: undefined;
-  Promos: undefined;
-  Profile: undefined;
 };
 
 // Module Stacks
