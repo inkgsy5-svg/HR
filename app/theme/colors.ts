@@ -1,13 +1,13 @@
 export const colors = {
   // Brand
-  primary: '#1A1A2E',
+  primary: '#111111',
   secondary: '#E94560',
-  accent: '#F5A623',
+  accent: '#FFA500',
 
   // Backgrounds
-  background: '#0F0F1A',
-  surface: '#1E1E30',
-  card: '#252538',
+  background: '#111111',
+  surface: '#2A1A0E',
+  card: '#3A2218',
 
   // Text
   textPrimary: '#FFFFFF',
@@ -21,8 +21,8 @@ export const colors = {
   info: '#2196F3',
 
   // Borders
-  border: '#2E2E45',
-  borderLight: '#3E3E55',
+  border: '#3D2415',
+  borderLight: '#5A3520',
 
   // Misc
   white: '#FFFFFF',
