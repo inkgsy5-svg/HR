@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabParamList } from './types';
+import { colors } from '@app/theme/colors';
+import { typography } from '@app/theme/typography';
 import HomeScreen from '@modules/home/screens/HomeScreen';
 import ProfileScreen from '@modules/profile/screens/ProfileScreen';
 import SearchScreen from '@modules/search/screens/SearchScreen';
@@ -50,7 +52,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     <View style={[styles.bar, { bottom: insets.bottom + 12 }]}>
       {TABS.map((tab, index) => {
         const focused = state.index === index;
-        const color = focused ? '#FFFFFF' : 'rgba(255,255,255,0.45)';
+        const color = focused ? colors.tabIconActive : colors.tabIconInactive;
 
         return (
           <React.Fragment key={tab.name}>
@@ -91,11 +93,11 @@ const styles = StyleSheet.create({
     right: 20,
     height: 68,
     borderRadius: 34,
-    backgroundColor: '#111111',
+    backgroundColor: colors.background,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.35,
     shadowRadius: 16,
@@ -110,11 +112,11 @@ const styles = StyleSheet.create({
   separator: {
     width: 1,
     height: 30,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: colors.tabSeparator,
   },
   label: {
-    fontSize: 11,
-    fontWeight: '400',
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.regular,
   },
   // Iconos
   iconWrap: {

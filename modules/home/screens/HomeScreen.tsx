@@ -28,7 +28,7 @@ const MODULES = [
     label: 'Tatuajes',
     subtitle: 'Arte en tu piel',
     screen: 'Tattoo' as const,
-    accent: '#8B2FC9',
+    accent: colors.moduleTattoo,
     image: require('../../../assets/images/tattoo-artists.png') as number,
   },
   {
@@ -36,7 +36,7 @@ const MODULES = [
     label: 'Barber',
     subtitle: 'Cortes y estilos',
     screen: 'Barber' as const,
-    accent: '#2E86AB',
+    accent: colors.moduleBarber,
     image: null,
   },
   {
@@ -44,7 +44,7 @@ const MODULES = [
     label: 'Smoke Shop',
     subtitle: 'Productos selectos',
     screen: 'SmokeShop' as const,
-    accent: '#4CAF50',
+    accent: colors.moduleSmokeShop,
     image: null,
   },
   {
@@ -52,7 +52,7 @@ const MODULES = [
     label: 'Música',
     subtitle: 'Eventos y conciertos',
     screen: 'Music' as const,
-    accent: '#E94560',
+    accent: colors.moduleMusic,
     image: null,
   },
   {
@@ -60,7 +60,7 @@ const MODULES = [
     label: 'Perforaciones',
     subtitle: 'Joyería y piercing',
     screen: 'Piercing' as const,
-    accent: '#F5A623',
+    accent: colors.modulePiercing,
     image: null,
   },
   {
@@ -68,7 +68,7 @@ const MODULES = [
     label: 'Cuadros de Resina',
     subtitle: 'Arte decorativo',
     screen: 'Resin' as const,
-    accent: '#00BCD4',
+    accent: colors.moduleResin,
     image: null,
   },
 ];
@@ -148,7 +148,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#111111' },
+  safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -156,13 +156,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: colors.divider,
   },
   logoText: {
-    color: '#C9A050',
+    color: colors.gold,
     fontSize: 32,
-    fontWeight: '700',
-    fontFamily: 'serif',
+    fontWeight: typography.fontWeight.bold,
+    fontFamily: typography.fontFamily?.logo,
     letterSpacing: 3,
   },
   searchBtn: { padding: spacing.xs },
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
-    borderColor: '#FFA500',
+    borderColor: colors.accent,
     overflow: 'hidden',
     height: 120,
   },
@@ -189,20 +189,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   promoTitle: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    fontFamily: 'sans-serif',
     textAlign: 'center',
   },
   promoButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: colors.accent,
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm + 2,
   },
   promoButtonText: {
-    color: '#1A1A1A',
+    color: colors.textOnAccent,
     fontWeight: typography.fontWeight.bold,
     fontSize: typography.fontSize.base,
     letterSpacing: 2,
@@ -214,7 +213,7 @@ const styles = StyleSheet.create({
   },
   moduleCard: {
     borderRadius: borderRadius.lg,
-    backgroundColor: '#1C1C1C',
+    backgroundColor: colors.cardDark,
     overflow: 'hidden',
     height: 100,
   },
@@ -235,12 +234,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   moduleLabel: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: typography.fontSize.lg,
-    fontWeight: '700',
+    fontWeight: typography.fontWeight.bold,
   },
   moduleSubtitle: {
-    color: 'rgba(255,255,255,0.55)',
+    color: colors.textModuleSubtitle,
     fontSize: typography.fontSize.sm,
   },
 });

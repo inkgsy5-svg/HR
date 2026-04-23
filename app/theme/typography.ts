@@ -5,16 +5,19 @@ const fontFamily = Platform.select({
     regular: 'System',
     medium: 'System',
     bold: 'System',
+    logo: 'serif',
   },
   android: {
     regular: 'Roboto',
     medium: 'Roboto-Medium',
     bold: 'Roboto-Bold',
+    logo: 'serif',
   },
   default: {
     regular: 'System',
     medium: 'System',
     bold: 'System',
+    logo: 'serif',
   },
 });
 
