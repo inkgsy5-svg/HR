@@ -25,7 +25,9 @@ export type BarberStackParamList = {
   BarberHome: undefined;
   BarberServices: undefined;
   BarberDetail: { id: string };
-  BarberBooking: { barberId: string };
+  //  BarberBooking: { barberId: string };
+  BarberBooking: { barberId: string; serviceIds: string[] };
+  BarberReviews: { barberId: string };
 };
 
 export type SmokeShopStackParamList = {
