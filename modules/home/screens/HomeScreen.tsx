@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   ImageBackground,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -17,10 +16,10 @@ import { AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
+import ArtistCircle from '@modules/tattoo/components/ArtistCircle';
+import { ARTISTS, Artist } from '@modules/tattoo/data/artists';
 
 type HomeNavProp = StackNavigationProp<AppStackParamList>;
-
-const { width } = Dimensions.get('window');
 
 const MODULES = [
   {
@@ -29,7 +28,7 @@ const MODULES = [
     subtitle: 'Arte en tu piel',
     screen: 'Tattoo' as const,
     accent: colors.moduleTattoo,
-    image: require('../../../assets/images/tattoo-artists.png') as number,
+    image: require('../../../assets/images/tattoo/tattoo-artists.jpg') as number,
   },
   {
     id: 'barber',
@@ -73,8 +72,41 @@ const MODULES = [
   },
 ];
 
+const ARTISTS_PANEL_HEIGHT = 210;
+
 export default function HomeScreen() {
   const navigation = useNavigation<HomeNavProp>();
+  const [tattooExpanded, setTattooExpanded] = useState(false);
+  const [expandAnim] = useState(() => new Animated.Value(0));
+
+  const toggleTattooExpand = useCallback(() => {
+    const toValue = tattooExpanded ? 0 : ARTISTS_PANEL_HEIGHT;
+    setTattooExpanded(prev => !prev);
+    Animated.timing(expandAnim, {
+      toValue,
+      duration: 280,
+      useNativeDriver: false,
+    }).start();
+  }, [tattooExpanded, expandAnim]);
+
+  const handleArtistPress = useCallback(
+    (artist: Artist) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      navigation.navigate('Tattoo', { screen: 'TattooDetail', params: { id: artist.id } } as any);
+    },
+    [navigation],
+  );
+
+  const handleModulePress = useCallback(
+    (item: (typeof MODULES)[number]) => {
+      if (item.id === 'tattoo') {
+        toggleTattooExpand();
+      } else {
+        navigation.navigate(item.screen as keyof AppStackParamList);
+      }
+    },
+    [toggleTattooExpand, navigation],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -89,7 +121,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Promo Banner */}
         <ImageBackground
-          source={require('../../../assets/images/promo-bg.webp')}
+          source={require('../../../assets/images/home/promo-bg.webp')}
           style={styles.promoBanner}
           resizeMode="cover"
         >
@@ -111,35 +143,47 @@ export default function HomeScreen() {
         {/* Module Cards */}
         <View style={styles.moduleList}>
           {MODULES.map(item => (
-            <TouchableOpacity
-              key={item.id}
-              activeOpacity={0.85}
-              style={styles.moduleCard}
-              onPress={() => navigation.navigate(item.screen as keyof AppStackParamList)}
-            >
-              {item.image ? (
-                <ImageBackground
-                  source={item.image}
-                  style={styles.moduleImageBg}
-                  resizeMode="cover"
-                >
-                  <LinearGradient
-                    colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.1)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.moduleOverlay}
+            <View key={item.id}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.moduleCard}
+                onPress={() => handleModulePress(item)}
+              >
+                {item.image ? (
+                  <ImageBackground
+                    source={item.image}
+                    style={styles.moduleImageBg}
+                    resizeMode="cover"
                   >
+                    <LinearGradient
+                      colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.1)']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.moduleOverlay}
+                    >
+                      <Text style={styles.moduleLabel}>{item.label}</Text>
+                      <Text style={styles.moduleSubtitle}>{item.subtitle}</Text>
+                    </LinearGradient>
+                  </ImageBackground>
+                ) : (
+                  <View style={styles.moduleInfo}>
                     <Text style={styles.moduleLabel}>{item.label}</Text>
                     <Text style={styles.moduleSubtitle}>{item.subtitle}</Text>
-                  </LinearGradient>
-                </ImageBackground>
-              ) : (
-                <View style={styles.moduleInfo}>
-                  <Text style={styles.moduleLabel}>{item.label}</Text>
-                  <Text style={styles.moduleSubtitle}>{item.subtitle}</Text>
-                </View>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* Panel de artistas — solo bajo Tatuajes */}
+              {item.id === 'tattoo' && (
+                <Animated.View style={[styles.artistsPanel, { height: expandAnim }]}>
+                  <View style={styles.artistsRow}>
+                    {ARTISTS.map(artist => (
+                      <ArtistCircle key={artist.id} artist={artist} onPress={handleArtistPress} />
+                    ))}
+                  </View>
+                </Animated.View>
               )}
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
       </ScrollView>
@@ -185,9 +229,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  promoContent: {
-    alignItems: 'center',
-  },
+  promoContent: { alignItems: 'center' },
   promoTitle: {
     color: colors.textPrimary,
     fontSize: typography.fontSize.lg,
@@ -217,10 +259,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: 100,
   },
-  moduleImageBg: {
-    width: '100%',
-    height: '100%',
-  },
+  moduleImageBg: { width: '100%', height: '100%' },
   moduleOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -241,5 +280,16 @@ const styles = StyleSheet.create({
   moduleSubtitle: {
     color: colors.textModuleSubtitle,
     fontSize: typography.fontSize.sm,
+  },
+  artistsPanel: {
+    overflow: 'hidden',
+    backgroundColor: colors.background,
+  },
+  artistsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.md,
+    gap: spacing.xl,
   },
 });

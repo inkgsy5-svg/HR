@@ -27,7 +27,7 @@ export default function Header({
       <View style={styles.left}>
         {showLogo ? (
           <Image
-            source={require('../../../assets/images/hr-logo.png')}
+            source={require('../../../assets/images/brand/hr-logo.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
