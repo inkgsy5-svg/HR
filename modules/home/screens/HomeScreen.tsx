@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   ImageBackground,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -17,10 +16,10 @@ import { AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
+import ArtistCircle from '@modules/tattoo/components/ArtistCircle';
+import { ARTISTS, Artist } from '@modules/tattoo/data/artists';
 
 type HomeNavProp = StackNavigationProp<AppStackParamList>;
-
-const { width } = Dimensions.get('window');
 
 const MODULES = [
   {
@@ -28,15 +27,15 @@ const MODULES = [
     label: 'Tatuajes',
     subtitle: 'Arte en tu piel',
     screen: 'Tattoo' as const,
-    accent: '#8B2FC9',
-    image: require('../../../assets/images/tattoo-artists.png') as number,
+    accent: colors.moduleTattoo,
+    image: require('../../../assets/images/tattoo/tattoo-artists.jpg') as number,
   },
   {
     id: 'barber',
     label: 'Barber',
     subtitle: 'Cortes y estilos',
     screen: 'Barber' as const,
-    accent: '#2E86AB',
+    accent: colors.moduleBarber,
     image: null,
   },
   {
@@ -44,7 +43,7 @@ const MODULES = [
     label: 'Smoke Shop',
     subtitle: 'Productos selectos',
     screen: 'SmokeShop' as const,
-    accent: '#4CAF50',
+    accent: colors.moduleSmokeShop,
     image: null,
   },
   {
@@ -52,7 +51,7 @@ const MODULES = [
     label: 'Música',
     subtitle: 'Eventos y conciertos',
     screen: 'Music' as const,
-    accent: '#E94560',
+    accent: colors.moduleMusic,
     image: null,
   },
   {
@@ -60,7 +59,7 @@ const MODULES = [
     label: 'Perforaciones',
     subtitle: 'Joyería y piercing',
     screen: 'Piercing' as const,
-    accent: '#F5A623',
+    accent: colors.modulePiercing,
     image: null,
   },
   {
@@ -68,13 +67,46 @@ const MODULES = [
     label: 'Cuadros de Resina',
     subtitle: 'Arte decorativo',
     screen: 'Resin' as const,
-    accent: '#00BCD4',
+    accent: colors.moduleResin,
     image: null,
   },
 ];
 
+const ARTISTS_PANEL_HEIGHT = 210;
+
 export default function HomeScreen() {
   const navigation = useNavigation<HomeNavProp>();
+  const [tattooExpanded, setTattooExpanded] = useState(false);
+  const [expandAnim] = useState(() => new Animated.Value(0));
+
+  const toggleTattooExpand = useCallback(() => {
+    const toValue = tattooExpanded ? 0 : ARTISTS_PANEL_HEIGHT;
+    setTattooExpanded(prev => !prev);
+    Animated.timing(expandAnim, {
+      toValue,
+      duration: 280,
+      useNativeDriver: false,
+    }).start();
+  }, [tattooExpanded, expandAnim]);
+
+  const handleArtistPress = useCallback(
+    (artist: Artist) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      navigation.navigate('Tattoo', { screen: 'TattooDetail', params: { id: artist.id } } as any);
+    },
+    [navigation],
+  );
+
+  const handleModulePress = useCallback(
+    (item: (typeof MODULES)[number]) => {
+      if (item.id === 'tattoo') {
+        toggleTattooExpand();
+      } else {
+        navigation.navigate(item.screen as keyof AppStackParamList);
+      }
+    },
+    [toggleTattooExpand, navigation],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -89,7 +121,7 @@ export default function HomeScreen() {
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Promo Banner */}
         <ImageBackground
-          source={require('../../../assets/images/promo-bg.webp')}
+          source={require('../../../assets/images/home/promo-bg.webp')}
           style={styles.promoBanner}
           resizeMode="cover"
         >
@@ -111,35 +143,47 @@ export default function HomeScreen() {
         {/* Module Cards */}
         <View style={styles.moduleList}>
           {MODULES.map(item => (
-            <TouchableOpacity
-              key={item.id}
-              activeOpacity={0.85}
-              style={styles.moduleCard}
-              onPress={() => navigation.navigate(item.screen as keyof AppStackParamList)}
-            >
-              {item.image ? (
-                <ImageBackground
-                  source={item.image}
-                  style={styles.moduleImageBg}
-                  resizeMode="cover"
-                >
-                  <LinearGradient
-                    colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.1)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.moduleOverlay}
+            <View key={item.id}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.moduleCard}
+                onPress={() => handleModulePress(item)}
+              >
+                {item.image ? (
+                  <ImageBackground
+                    source={item.image}
+                    style={styles.moduleImageBg}
+                    resizeMode="cover"
                   >
+                    <LinearGradient
+                      colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.1)']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.moduleOverlay}
+                    >
+                      <Text style={styles.moduleLabel}>{item.label}</Text>
+                      <Text style={styles.moduleSubtitle}>{item.subtitle}</Text>
+                    </LinearGradient>
+                  </ImageBackground>
+                ) : (
+                  <View style={styles.moduleInfo}>
                     <Text style={styles.moduleLabel}>{item.label}</Text>
                     <Text style={styles.moduleSubtitle}>{item.subtitle}</Text>
-                  </LinearGradient>
-                </ImageBackground>
-              ) : (
-                <View style={styles.moduleInfo}>
-                  <Text style={styles.moduleLabel}>{item.label}</Text>
-                  <Text style={styles.moduleSubtitle}>{item.subtitle}</Text>
-                </View>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* Panel de artistas — solo bajo Tatuajes */}
+              {item.id === 'tattoo' && (
+                <Animated.View style={[styles.artistsPanel, { height: expandAnim }]}>
+                  <View style={styles.artistsRow}>
+                    {ARTISTS.map(artist => (
+                      <ArtistCircle key={artist.id} artist={artist} onPress={handleArtistPress} />
+                    ))}
+                  </View>
+                </Animated.View>
               )}
-            </TouchableOpacity>
+            </View>
           ))}
         </View>
       </ScrollView>
@@ -148,7 +192,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#111111' },
+  safe: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -156,13 +200,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    borderBottomColor: colors.divider,
   },
   logoText: {
-    color: '#C9A050',
+    color: colors.gold,
     fontSize: 32,
-    fontWeight: '700',
-    fontFamily: 'serif',
+    fontWeight: typography.fontWeight.bold,
+    fontFamily: typography.fontFamily?.logo,
     letterSpacing: 3,
   },
   searchBtn: { padding: spacing.xs },
@@ -174,7 +218,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
-    borderColor: '#FFA500',
+    borderColor: colors.accent,
     overflow: 'hidden',
     height: 120,
   },
@@ -185,24 +229,21 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  promoContent: {
-    alignItems: 'center',
-  },
+  promoContent: { alignItems: 'center' },
   promoTitle: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
-    fontFamily: 'sans-serif',
     textAlign: 'center',
   },
   promoButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: colors.accent,
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm + 2,
   },
   promoButtonText: {
-    color: '#1A1A1A',
+    color: colors.textOnAccent,
     fontWeight: typography.fontWeight.bold,
     fontSize: typography.fontSize.base,
     letterSpacing: 2,
@@ -214,14 +255,11 @@ const styles = StyleSheet.create({
   },
   moduleCard: {
     borderRadius: borderRadius.lg,
-    backgroundColor: '#1C1C1C',
+    backgroundColor: colors.cardDark,
     overflow: 'hidden',
     height: 100,
   },
-  moduleImageBg: {
-    width: '100%',
-    height: '100%',
-  },
+  moduleImageBg: { width: '100%', height: '100%' },
   moduleOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -235,12 +273,23 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   moduleLabel: {
-    color: '#FFFFFF',
+    color: colors.textPrimary,
     fontSize: typography.fontSize.lg,
-    fontWeight: '700',
+    fontWeight: typography.fontWeight.bold,
   },
   moduleSubtitle: {
-    color: 'rgba(255,255,255,0.55)',
+    color: colors.textModuleSubtitle,
     fontSize: typography.fontSize.sm,
+  },
+  artistsPanel: {
+    overflow: 'hidden',
+    backgroundColor: colors.background,
+  },
+  artistsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.md,
+    gap: spacing.xl,
   },
 });
