@@ -59,7 +59,7 @@ export default function BarberDetailScreen() {
   const { params } = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState<number | { uri: string } | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const barber = BARBERS.find(b => b.id === params.id);
   if (!barber) return null;
@@ -145,7 +145,7 @@ export default function BarberDetailScreen() {
           {/* Galería con lightbox */}
           <View style={styles.gallery}>
             {barber.gallery.map((img, i) => (
-              <TouchableOpacity key={i} onPress={() => setLightboxImage(img)} activeOpacity={0.85}>
+              <TouchableOpacity key={i} onPress={() => setLightboxIndex(i)} activeOpacity={0.85}>
                 <Image source={img} style={styles.galleryCell} resizeMode="cover" />
               </TouchableOpacity>
             ))}
@@ -180,9 +180,10 @@ export default function BarberDetailScreen() {
 
       {/* Lightbox */}
       <ImageLightbox
-        visible={lightboxImage !== null}
-        image={lightboxImage}
-        onClose={() => setLightboxImage(null)}
+        visible={lightboxIndex !== null}
+        images={barber.gallery}
+        initialIndex={lightboxIndex ?? 0}
+        onClose={() => setLightboxIndex(null)}
       />
     </View>
   );

@@ -9,6 +9,7 @@ import {
   Dimensions,
   Linking,
 } from 'react-native';
+import ImageLightbox from '@modules/barber/components/ImageLightbox';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -58,6 +59,7 @@ export default function TattooDetailScreen() {
   const { params } = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const artist = ARTISTS.find(a => a.id === params.id);
   if (!artist) return null;
@@ -137,7 +139,9 @@ export default function TattooDetailScreen() {
           </View>
           <View style={styles.gallery}>
             {artist.gallery.map((img, i) => (
-              <Image key={i} source={img} style={styles.galleryCell} resizeMode="cover" />
+              <TouchableOpacity key={i} onPress={() => setLightboxIndex(i)}>
+                <Image source={img} style={styles.galleryCell} resizeMode="cover" />
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -160,6 +164,13 @@ export default function TattooDetailScreen() {
           ))}
         </View>
       </ScrollView>
+
+      <ImageLightbox
+        visible={lightboxIndex !== null}
+        images={artist.gallery}
+        initialIndex={lightboxIndex ?? 0}
+        onClose={() => setLightboxIndex(null)}
+      />
 
       {/* CTA fijo abajo */}
       <View style={[styles.ctaBar, { paddingBottom: insets.bottom + spacing.sm }]}>
