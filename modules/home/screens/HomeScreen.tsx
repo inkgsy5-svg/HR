@@ -18,6 +18,8 @@ import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import ArtistCircle from '@modules/tattoo/components/ArtistCircle';
 import { ARTISTS, Artist } from '@modules/tattoo/data/artists';
+import BarberCircle from '@modules/barber/components/BarberCircle';
+import { BARBERS, Barber } from '@modules/barber/data/barbers';
 
 type HomeNavProp = StackNavigationProp<AppStackParamList>;
 
@@ -36,7 +38,7 @@ const MODULES = [
     subtitle: 'Cortes y estilos',
     screen: 'Barber' as const,
     accent: colors.moduleBarber,
-    image: null,
+    image: require('../../../assets/images/barber/barber-artist-3.jpeg') as number,
   },
   {
     id: 'smoke-shop',
@@ -72,27 +74,46 @@ const MODULES = [
   },
 ];
 
-const ARTISTS_PANEL_HEIGHT = 210;
+const PANEL_HEIGHT = 210;
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeNavProp>();
-  const [tattooExpanded, setTattooExpanded] = useState(false);
-  const [expandAnim] = useState(() => new Animated.Value(0));
 
-  const toggleTattooExpand = useCallback(() => {
-    const toValue = tattooExpanded ? 0 : ARTISTS_PANEL_HEIGHT;
-    setTattooExpanded(prev => !prev);
-    Animated.timing(expandAnim, {
-      toValue,
-      duration: 280,
-      useNativeDriver: false,
-    }).start();
-  }, [tattooExpanded, expandAnim]);
+  const [tattooExpanded, setTattooExpanded] = useState(false);
+  const [tattooAnim] = useState(() => new Animated.Value(0));
+
+  const [barberExpanded, setBarberExpanded] = useState(false);
+  const [barberAnim] = useState(() => new Animated.Value(0));
+
+  const toggleExpand = useCallback(
+    (expanded: boolean, setExpanded: (v: boolean) => void, anim: Animated.Value) => {
+      const toValue = expanded ? 0 : PANEL_HEIGHT;
+      setExpanded(!expanded);
+      Animated.timing(anim, {
+        toValue,
+        duration: 280,
+        useNativeDriver: false,
+      }).start();
+    },
+    [],
+  );
 
   const handleArtistPress = useCallback(
     (artist: Artist) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      navigation.navigate('Tattoo', { screen: 'TattooDetail', params: { id: artist.id } } as any);
+      navigation.navigate(
+        'Tattoo' as never,
+        { screen: 'TattooDetail', params: { id: artist.id } } as never,
+      );
+    },
+    [navigation],
+  );
+
+  const handleBarberPress = useCallback(
+    (barber: Barber) => {
+      navigation.navigate(
+        'Barber' as never,
+        { screen: 'BarberDetail', params: { id: barber.id } } as never,
+      );
     },
     [navigation],
   );
@@ -100,17 +121,18 @@ export default function HomeScreen() {
   const handleModulePress = useCallback(
     (item: (typeof MODULES)[number]) => {
       if (item.id === 'tattoo') {
-        toggleTattooExpand();
+        toggleExpand(tattooExpanded, setTattooExpanded, tattooAnim);
+      } else if (item.id === 'barber') {
+        toggleExpand(barberExpanded, setBarberExpanded, barberAnim);
       } else {
         navigation.navigate(item.screen as keyof AppStackParamList);
       }
     },
-    [toggleTattooExpand, navigation],
+    [tattooExpanded, barberExpanded, tattooAnim, barberAnim, toggleExpand, navigation],
   );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.logoText}>HR</Text>
         <TouchableOpacity style={styles.searchBtn}>
@@ -119,7 +141,6 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Promo Banner */}
         <ImageBackground
           source={require('../../../assets/images/home/promo-bg.webp')}
           style={styles.promoBanner}
@@ -140,7 +161,6 @@ export default function HomeScreen() {
           </LinearGradient>
         </ImageBackground>
 
-        {/* Module Cards */}
         <View style={styles.moduleList}>
           {MODULES.map(item => (
             <View key={item.id}>
@@ -173,12 +193,23 @@ export default function HomeScreen() {
                 )}
               </TouchableOpacity>
 
-              {/* Panel de artistas — solo bajo Tatuajes */}
+              {/* Panel Tatuajes */}
               {item.id === 'tattoo' && (
-                <Animated.View style={[styles.artistsPanel, { height: expandAnim }]}>
+                <Animated.View style={[styles.artistsPanel, { height: tattooAnim }]}>
                   <View style={styles.artistsRow}>
                     {ARTISTS.map(artist => (
                       <ArtistCircle key={artist.id} artist={artist} onPress={handleArtistPress} />
+                    ))}
+                  </View>
+                </Animated.View>
+              )}
+
+              {/* Panel Barber */}
+              {item.id === 'barber' && (
+                <Animated.View style={[styles.artistsPanel, { height: barberAnim }]}>
+                  <View style={styles.artistsRow}>
+                    {BARBERS.map(barber => (
+                      <BarberCircle key={barber.id} barber={barber} onPress={handleBarberPress} />
                     ))}
                   </View>
                 </Animated.View>
@@ -206,7 +237,6 @@ const styles = StyleSheet.create({
     color: colors.gold,
     fontSize: 32,
     fontWeight: typography.fontWeight.bold,
-    fontFamily: typography.fontFamily?.logo,
     letterSpacing: 3,
   },
   searchBtn: { padding: spacing.xs },
@@ -291,5 +321,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingHorizontal: spacing.md,
     gap: spacing.xl,
+    flexWrap: 'wrap',
   },
 });

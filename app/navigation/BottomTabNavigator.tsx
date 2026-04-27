@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     right: 20,
     height: 68,
     borderRadius: 34,
-    backgroundColor: colors.background,
+    backgroundColor: colors.tabBackground,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
