@@ -25,9 +25,15 @@ export type BarberStackParamList = {
   BarberHome: undefined;
   BarberServices: undefined;
   BarberDetail: { id: string };
-  //  BarberBooking: { barberId: string };
   BarberBooking: { barberId: string; serviceIds: string[] };
   BarberReviews: { barberId: string };
+  BarberConfirm: {
+    barberName: string;
+    day: string;
+    slot: string;
+    total: number;
+    services: string[];
+  };
 };
 
 export type SmokeShopStackParamList = {
@@ -56,7 +62,7 @@ export type ResinStackParamList = {
   ResinOrder: undefined;
 };
 
-// App Stack (wraps bottom tabs + module stacks)
+// App Stack
 export type AppStackParamList = {
   MainTabs: NavigatorScreenParams<BottomTabParamList>;
   Tattoo: NavigatorScreenParams<TattooStackParamList>;

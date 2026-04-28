@@ -4,13 +4,13 @@
     "slug": "hr-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/hr-logo.png",
+    "icon": "./assets/1-Home-HR.jpeg",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/hr-logo.png",
+      "image": "./assets/1-Home-HR.jpeg",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#111111"
     },
     "ios": {
       "supportsTablet": false,
@@ -18,8 +18,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/hr-logo.png",
-        "backgroundColor": "#0F0F1A"
+        "foregroundImage": "./assets/1-Home-HR.jpeg",
+        "backgroundColor": "#111111"
       },
       "package": "com.haciendoloreal.hrapp",
       "edgeToEdgeEnabled": true
