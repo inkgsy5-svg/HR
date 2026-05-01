@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react'; // gregado useState
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -11,6 +11,7 @@ import ToastContainer from '@app/components/Toast';
 import ErrorBoundary from '@app/components/ErrorBoundary';
 import { useAuthStore } from '@store/authStore';
 import { colors } from '@app/theme/colors';
+import SplashScreen from '@app/screens/SplashScreen'; // nuevo import
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,10 +24,16 @@ const queryClient = new QueryClient({
 
 export default function App() {
   const restoreSession = useAuthStore(state => state.restoreSession);
+  const [showSplash, setShowSplash] = useState(true); // nuevo estado — controla si se muestra la splash
 
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
+
+  // 👈 Si showSplash es true, muestra la pantalla del logo antes que todo lo demás
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
 
   return (
     <ErrorBoundary>
