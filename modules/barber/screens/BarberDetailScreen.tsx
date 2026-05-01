@@ -13,13 +13,16 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BarberStackParamList } from '@app/navigation/types';
+import { AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import { BARBERS, BarberReview } from '../data/barbers';
+import { SERVICES } from '../data/services';
 import ImageLightbox from '../components/ImageLightbox';
 
 type NavProp = StackNavigationProp<BarberStackParamList>;
+type AppNavProp = StackNavigationProp<AppStackParamList>;
 type RouteType = RouteProp<BarberStackParamList, 'BarberDetail'>;
 
 const { width } = Dimensions.get('window');
@@ -56,6 +59,7 @@ function ReviewCard({ review }: { review: BarberReview }) {
 
 export default function BarberDetailScreen() {
   const navigation = useNavigation<NavProp>();
+  const appNavigation = useNavigation<AppNavProp>();
   const { params } = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState(false);
@@ -70,7 +74,18 @@ export default function BarberDetailScreen() {
   }
 
   function handleBook() {
-    navigation.navigate('BarberBooking', { barberId: barber!.id, serviceIds: [] });
+    appNavigation.navigate('Booking', {
+      module: 'barber',
+      professional: {
+        id: barber!.id,
+        name: barber!.name,
+        specialty: barber!.specialty,
+        image: barber!.image,
+        heroImage: barber!.heroImage,
+        whatsapp: barber!.whatsapp,
+      },
+      services: SERVICES,
+    });
   }
 
   return (
@@ -141,8 +156,6 @@ export default function BarberDetailScreen() {
               </Text>
             ))}
           </View>
-
-          {/* Galería con lightbox */}
           <View style={styles.gallery}>
             {barber.gallery.map((img, i) => (
               <TouchableOpacity key={i} onPress={() => setLightboxImage(img)} activeOpacity={0.85}>
@@ -171,7 +184,7 @@ export default function BarberDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* CTA fijo abajo */}
+      {/* CTA fijo */}
       <View style={[styles.ctaBar, { paddingBottom: insets.bottom + spacing.sm }]}>
         <TouchableOpacity style={styles.ctaButton} onPress={handleBook}>
           <Text style={styles.ctaText}>AGENDAR CITA CON {barber.name.toUpperCase()}</Text>
@@ -217,10 +230,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.xxxl,
     fontWeight: typography.fontWeight.bold,
   },
-  specialty: {
-    color: colors.textSecondary,
-    fontSize: typography.fontSize.base,
-  },
+  specialty: { color: colors.textSecondary, fontSize: typography.fontSize.base },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -269,17 +279,8 @@ const styles = StyleSheet.create({
   stylesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   styleTag: { color: colors.textSecondary, fontSize: typography.fontSize.sm },
 
-  gallery: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: GALLERY_GAP,
-    marginTop: spacing.xs,
-  },
-  galleryCell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    borderRadius: borderRadius.sm,
-  },
+  gallery: { flexDirection: 'row', flexWrap: 'wrap', gap: GALLERY_GAP, marginTop: spacing.xs },
+  galleryCell: { width: CELL_SIZE, height: CELL_SIZE, borderRadius: borderRadius.sm },
 
   infoRow: { flexDirection: 'row', gap: spacing.lg, flexWrap: 'wrap' },
   infoItem: {
@@ -308,23 +309,14 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
   },
   reviewBody: { flex: 1 },
-  reviewTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexWrap: 'wrap',
-  },
+  reviewTopRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   reviewAuthor: {
     color: colors.textPrimary,
     fontWeight: typography.fontWeight.bold,
     fontSize: typography.fontSize.sm,
   },
   reviewTime: { color: colors.textMuted, fontSize: typography.fontSize.xs },
-  reviewComment: {
-    color: colors.textSecondary,
-    fontSize: typography.fontSize.sm,
-    marginTop: 2,
-  },
+  reviewComment: { color: colors.textSecondary, fontSize: typography.fontSize.sm, marginTop: 2 },
 
   ctaBar: {
     position: 'absolute',

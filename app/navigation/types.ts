@@ -1,4 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
+import { BookingService, BookingProfessional, BookingModule } from '@app/booking/booking.types';
 
 // Auth Stack
 export type AuthStackParamList = {
@@ -71,6 +72,19 @@ export type AppStackParamList = {
   Music: NavigatorScreenParams<MusicStackParamList>;
   Piercing: NavigatorScreenParams<PiercingStackParamList>;
   Resin: NavigatorScreenParams<ResinStackParamList>;
+  Booking: {
+    module: BookingModule;
+    professional: BookingProfessional;
+    services: BookingService[];
+  };
+  BookingConfirm: {
+    professionalName: string;
+    module: BookingModule;
+    day: string;
+    slot: string;
+    total: number;
+    services: string[];
+  };
 };
 
 // Root
