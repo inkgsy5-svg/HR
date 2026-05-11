@@ -34,6 +34,7 @@ export default function BookingScreen() {
   const insets = useSafeAreaInsets();
 
   const { professional, services } = params;
+  const hasServices = services.length > 0;
 
   const [selectedServices, setSelectedServices] = useState<BookingService[]>([]);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export default function BookingScreen() {
   };
 
   const handleConfirm = () => {
-    if (selectedServices.length === 0) {
+    if (hasServices && selectedServices.length === 0) {
       Alert.alert('Selecciona un servicio', 'Elige al menos un servicio para continuar.');
       return;
     }
@@ -143,26 +144,30 @@ export default function BookingScreen() {
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.sectionTitle}>Elige el servicio y la Fecha</Text>
-          <Text style={styles.sectionSubtitle}>Puedes seleccionar más de uno</Text>
+          <Text style={styles.sectionTitle}>
+            {hasServices ? 'Elige el servicio y la Fecha' : 'Elige la Fecha y Hora'}
+          </Text>
+          {hasServices && <Text style={styles.sectionSubtitle}>Puedes seleccionar más de uno</Text>}
 
-          {/* Botón servicios */}
-          <TouchableOpacity
-            style={[styles.selectorBtn, selectedServices.length > 0 && styles.selectorBtnActive]}
-            onPress={() => setShowServices(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.selectorIcon}>✂️</Text>
-            <Text
-              style={[
-                styles.selectorLabel,
-                selectedServices.length > 0 && styles.selectorLabelActive,
-              ]}
+          {/* Botón servicios — solo si el módulo tiene servicios */}
+          {hasServices && (
+            <TouchableOpacity
+              style={[styles.selectorBtn, selectedServices.length > 0 && styles.selectorBtnActive]}
+              onPress={() => setShowServices(true)}
+              activeOpacity={0.8}
             >
-              {serviceLabel}
-            </Text>
-            <Text style={styles.selectorArrow}>›</Text>
-          </TouchableOpacity>
+              <Text style={styles.selectorIcon}>✂️</Text>
+              <Text
+                style={[
+                  styles.selectorLabel,
+                  selectedServices.length > 0 && styles.selectorLabelActive,
+                ]}
+              >
+                {serviceLabel}
+              </Text>
+              <Text style={styles.selectorArrow}>›</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Botón fecha */}
           <TouchableOpacity
@@ -193,7 +198,7 @@ export default function BookingScreen() {
           )}
 
           {/* Resumen */}
-          {selectedServices.length > 0 && (
+          {(hasServices ? selectedServices.length > 0 : selectedDay !== null) && (
             <>
               <View style={styles.divider} />
               <Text style={styles.resumeTitle}>Resumen</Text>
@@ -224,7 +229,7 @@ export default function BookingScreen() {
                 {selectedDay && (
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>📅 Fecha</Text>
-                    <Text style={styles.summaryValue}>{selectedDay}</Text>
+                    <Text style={styles.summaryValue}>{formatDay(selectedDay)}</Text>
                   </View>
                 )}
                 {selectedSlot && (
@@ -233,17 +238,22 @@ export default function BookingScreen() {
                     <Text style={styles.summaryValue}>{selectedSlot}</Text>
                   </View>
                 )}
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>⏱ Duración</Text>
-                  <Text style={styles.summaryValue}>{totalDuration} min</Text>
-                </View>
+                {hasServices && (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>⏱ Duración</Text>
+                    <Text style={styles.summaryValue}>{totalDuration} min</Text>
+                  </View>
+                )}
 
-                <View style={styles.summaryDivider} />
-
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryTotalLabel}>Total</Text>
-                  <Text style={styles.summaryTotalValue}>${totalPrice}</Text>
-                </View>
+                {hasServices && (
+                  <>
+                    <View style={styles.summaryDivider} />
+                    <View style={styles.summaryRow}>
+                      <Text style={styles.summaryTotalLabel}>Total</Text>
+                      <Text style={styles.summaryTotalValue}>${totalPrice}</Text>
+                    </View>
+                  </>
+                )}
 
                 <View style={styles.cancelPolicy}>
                   <Text style={styles.cancelPolicyText}>
@@ -261,18 +271,20 @@ export default function BookingScreen() {
         <TouchableOpacity
           style={[
             styles.ctaBtn,
-            (selectedServices.length === 0 || !selectedDay || !selectedSlot) &&
+            ((hasServices && selectedServices.length === 0) || !selectedDay || !selectedSlot) &&
               styles.ctaBtnDisabled,
           ]}
           activeOpacity={0.85}
           onPress={handleConfirm}
         >
           <Text style={styles.ctaBtnText}>
-            {selectedServices.length === 0
+            {hasServices && selectedServices.length === 0
               ? 'Selecciona un servicio'
               : !selectedDay || !selectedSlot
                 ? 'Selecciona día y hora'
-                : `CONFIRMAR CITA — $${totalPrice}`}
+                : hasServices
+                  ? `CONFIRMAR CITA — $${totalPrice}`
+                  : 'CONFIRMAR CITA'}
           </Text>
         </TouchableOpacity>
       </View>

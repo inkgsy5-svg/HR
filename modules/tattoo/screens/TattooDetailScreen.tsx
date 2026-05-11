@@ -13,13 +13,14 @@ import ImageLightbox from '@modules/barber/components/ImageLightbox';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { TattooStackParamList } from '@app/navigation/types';
+import { TattooStackParamList, AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import { ARTISTS, Review } from '../data/artists';
 
 type NavProp = StackNavigationProp<TattooStackParamList>;
+type AppNavProp = StackNavigationProp<AppStackParamList>;
 type RouteType = RouteProp<TattooStackParamList, 'TattooDetail'>;
 
 const { width } = Dimensions.get('window');
@@ -56,6 +57,7 @@ function ReviewCard({ review }: { review: Review }) {
 
 export default function TattooDetailScreen() {
   const navigation = useNavigation<NavProp>();
+  const appNavigation = useNavigation<AppNavProp>();
   const { params } = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState(false);
@@ -67,6 +69,21 @@ export default function TattooDetailScreen() {
   function openWhatsApp() {
     const msg = `Hola ${artist!.name}, me interesa agendar una cita para un tatuaje.`;
     Linking.openURL(`whatsapp://send?phone=${artist!.whatsapp}&text=${encodeURIComponent(msg)}`);
+  }
+
+  function handleBook() {
+    appNavigation.navigate('Booking', {
+      module: 'tattoo',
+      professional: {
+        id: artist!.id,
+        name: artist!.name,
+        specialty: artist!.specialty,
+        image: artist!.image,
+        heroImage: artist!.heroImage,
+        whatsapp: artist!.whatsapp,
+      },
+      services: [],
+    });
   }
 
   return (
@@ -112,7 +129,7 @@ export default function TattooDetailScreen() {
 
           {/* Botones de acción */}
           <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.actionBtn}>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleBook}>
               <Text style={styles.actionBtnText}>📅 Agendar cita</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={openWhatsApp}>
@@ -139,7 +156,7 @@ export default function TattooDetailScreen() {
           </View>
           <View style={styles.gallery}>
             {artist.gallery.map((img, i) => (
-              <TouchableOpacity key={i} onPress={() => setLightboxIndex(i)}>
+              <TouchableOpacity key={i} onPress={() => setLightboxIndex(i)} activeOpacity={0.85}>
                 <Image source={img} style={styles.galleryCell} resizeMode="cover" />
               </TouchableOpacity>
             ))}
@@ -174,7 +191,7 @@ export default function TattooDetailScreen() {
 
       {/* CTA fijo abajo */}
       <View style={[styles.ctaBar, { paddingBottom: insets.bottom + spacing.sm }]}>
-        <TouchableOpacity style={styles.ctaButton}>
+        <TouchableOpacity style={styles.ctaButton} onPress={handleBook}>
           <Text style={styles.ctaText}>AGENDAR CITA CON {artist.name.toUpperCase()}</Text>
         </TouchableOpacity>
       </View>

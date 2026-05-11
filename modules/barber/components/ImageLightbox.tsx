@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -16,7 +16,6 @@ import {
   PanGestureHandler,
   TapGestureHandler,
   State,
-  GestureEvent,
   HandlerStateChangeEvent,
   PinchGestureHandlerEventPayload,
   PanGestureHandlerEventPayload,
@@ -46,7 +45,7 @@ function ZoomableImage({
 
   const [baseScale] = useState(() => new Animated.Value(1));
   const [pinchScale] = useState(() => new Animated.Value(1));
-  const scale = useState(() => Animated.multiply(baseScale, pinchScale))[0];
+  const [scale] = useState(() => Animated.multiply(baseScale, pinchScale));
   const lastScale = useRef(1);
 
   const [translateX] = useState(() => new Animated.Value(0));
@@ -70,10 +69,9 @@ function ZoomableImage({
     onZoomChange(false);
   }
 
-  const onPinchEvent = Animated.event<GestureEvent<PinchGestureHandlerEventPayload>>(
-    [{ nativeEvent: { scale: pinchScale } }],
-    { useNativeDriver: true },
-  );
+  const onPinchEvent = Animated.event([{ nativeEvent: { scale: pinchScale } }], {
+    useNativeDriver: true,
+  });
 
   const onPinchStateChange = (event: HandlerStateChangeEvent<PinchGestureHandlerEventPayload>) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
@@ -91,7 +89,7 @@ function ZoomableImage({
     }
   };
 
-  const onPanEvent = Animated.event<GestureEvent<PanGestureHandlerEventPayload>>(
+  const onPanEvent = Animated.event(
     [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
     { useNativeDriver: true },
   );
@@ -154,12 +152,13 @@ export default function ImageLightbox({ visible, images, initialIndex, onClose }
   const [isZoomed, setIsZoomed] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
-  useEffect(() => {
-    if (visible && listRef.current) {
-      listRef.current.scrollToIndex({ index: initialIndex, animated: false });
-      setCurrentIndex(initialIndex);
-    }
-  }, [visible, initialIndex]);
+  function handleShow() {
+    setIsZoomed(false);
+    setCurrentIndex(initialIndex);
+    setTimeout(() => {
+      listRef.current?.scrollToIndex({ index: initialIndex, animated: false });
+    }, 50);
+  }
 
   return (
     <Modal
@@ -167,11 +166,10 @@ export default function ImageLightbox({ visible, images, initialIndex, onClose }
       animationType="fade"
       statusBarTranslucent
       onRequestClose={onClose}
-      onDismiss={() => setIsZoomed(false)}
+      onShow={handleShow}
     >
       <StatusBar hidden />
       <GestureHandlerRootView style={styles.container}>
-        {/* Botón cerrar */}
         <TouchableOpacity
           style={[styles.closeBtn, { top: insets.top + 12 }]}
           onPress={onClose}
@@ -196,12 +194,11 @@ export default function ImageLightbox({ visible, images, initialIndex, onClose }
           onMomentumScrollEnd={e => {
             setCurrentIndex(Math.round(e.nativeEvent.contentOffset.x / width));
           }}
-          renderItem={({ item }) => (
-            <ZoomableImage key={String(visible)} source={item} onZoomChange={setIsZoomed} />
+          renderItem={({ item, index }) => (
+            <ZoomableImage key={`${visible}-${index}`} source={item} onZoomChange={setIsZoomed} />
           )}
         />
 
-        {/* Contador */}
         {images.length > 1 && (
           <View style={[styles.counter, { bottom: insets.bottom + 20 }]}>
             <Text style={styles.counterText}>
