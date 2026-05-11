@@ -1,4 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
+import { BookingService, BookingProfessional, BookingModule } from '@app/booking/booking.types';
 
 // Auth Stack
 export type AuthStackParamList = {
@@ -25,9 +26,15 @@ export type BarberStackParamList = {
   BarberHome: undefined;
   BarberServices: undefined;
   BarberDetail: { id: string };
-  //  BarberBooking: { barberId: string };
   BarberBooking: { barberId: string; serviceIds: string[] };
   BarberReviews: { barberId: string };
+  BarberConfirm: {
+    barberName: string;
+    day: string;
+    slot: string;
+    total: number;
+    services: string[];
+  };
 };
 
 export type SmokeShopStackParamList = {
@@ -56,7 +63,7 @@ export type ResinStackParamList = {
   ResinOrder: undefined;
 };
 
-// App Stack (wraps bottom tabs + module stacks)
+// App Stack
 export type AppStackParamList = {
   MainTabs: NavigatorScreenParams<BottomTabParamList>;
   Tattoo: NavigatorScreenParams<TattooStackParamList>;
@@ -65,6 +72,19 @@ export type AppStackParamList = {
   Music: NavigatorScreenParams<MusicStackParamList>;
   Piercing: NavigatorScreenParams<PiercingStackParamList>;
   Resin: NavigatorScreenParams<ResinStackParamList>;
+  Booking: {
+    module: BookingModule;
+    professional: BookingProfessional;
+    services: BookingService[];
+  };
+  BookingConfirm: {
+    professionalName: string;
+    module: BookingModule;
+    day: string;
+    slot: string;
+    total: number;
+    services: string[];
+  };
 };
 
 // Root

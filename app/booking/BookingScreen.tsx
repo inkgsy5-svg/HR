@@ -1,30 +1,18 @@
-import React, { useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Image,
-  Modal,
-  FlatList,
-  Dimensions,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { BarberStackParamList } from '@app/navigation/types';
+import { AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
-import { BARBERS } from '../data/barbers';
-import { SERVICES, BarberService } from '../data/services';
+import { BookingService } from './booking.types';
+import BottomModal from './components/BottomModal';
+import CalendarPicker from './components/CalendarPicker';
 
-type Nav = StackNavigationProp<BarberStackParamList, 'BarberBooking'>;
-type Route = RouteProp<BarberStackParamList, 'BarberBooking'>;
-
-const { width } = Dimensions.get('window');
+type Nav = StackNavigationProp<AppStackParamList, 'Booking'>;
+type Route = RouteProp<AppStackParamList, 'Booking'>;
 
 const MORNING_SLOTS = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
 const AFTERNOON_SLOTS = [
@@ -40,256 +28,14 @@ const AFTERNOON_SLOTS = [
 ];
 const UNAVAILABLE = ['09:00', '10:30', '13:30', '15:00'];
 
-const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const MONTH_NAMES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-];
-
-// ── Calendario visual ──────────────────────────────────────
-function CalendarPicker({
-  selectedDay,
-  onSelectDay,
-}: {
-  selectedDay: string | null;
-  onSelectDay: (key: string) => void;
-}) {
-  const today = new Date();
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-
-  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-
-  const prevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear(y => y - 1);
-    } else setViewMonth(m => m - 1);
-  };
-
-  const nextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear(y => y + 1);
-    } else setViewMonth(m => m + 1);
-  };
-
-  const isPast = (day: number) => {
-    const d = new Date(viewYear, viewMonth, day);
-    d.setHours(0, 0, 0, 0);
-    const t = new Date();
-    t.setHours(0, 0, 0, 0);
-    return d < t;
-  };
-
-  const toKey = (day: number) => {
-    const m = String(viewMonth + 1).padStart(2, '0');
-    const d = String(day).padStart(2, '0');
-    return `${viewYear}-${m}-${d}`;
-  };
-
-  const cells: (number | null)[] = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  while (cells.length % 7 !== 0) cells.push(null);
-
-  return (
-    <View style={cal.container}>
-      {/* Header mes */}
-      <View style={cal.header}>
-        <TouchableOpacity onPress={prevMonth} style={cal.navBtn}>
-          <Text style={cal.navText}>‹</Text>
-        </TouchableOpacity>
-        <Text style={cal.monthTitle}>
-          {MONTH_NAMES[viewMonth]} {viewYear}
-        </Text>
-        <TouchableOpacity onPress={nextMonth} style={cal.navBtn}>
-          <Text style={cal.navText}>›</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Días de la semana */}
-      <View style={cal.weekRow}>
-        {DAY_NAMES.map(d => (
-          <Text key={d} style={cal.weekDay}>
-            {d}
-          </Text>
-        ))}
-      </View>
-
-      {/* Días del mes */}
-      <View style={cal.grid}>
-        {cells.map((day, i) => {
-          if (!day) return <View key={`e-${i}`} style={cal.cell} />;
-          const key = toKey(day);
-          const past = isPast(day);
-          const selected = selectedDay === key;
-          return (
-            <TouchableOpacity
-              key={key}
-              style={[cal.cell, selected && cal.cellSelected, past && cal.cellPast]}
-              onPress={() => !past && onSelectDay(key)}
-              disabled={past}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[cal.cellText, selected && cal.cellTextSelected, past && cal.cellTextPast]}
-              >
-                {day}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-const CELL_SIZE = (width - spacing.lg * 2 - 32) / 7;
-
-const cal = StyleSheet.create({
-  container: { paddingHorizontal: spacing.md },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  navBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#1C1C1C',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navText: { color: colors.accent, fontSize: 22, fontWeight: '600' },
-  monthTitle: {
-    color: colors.textPrimary,
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.bold,
-  },
-  weekRow: {
-    flexDirection: 'row',
-    marginBottom: spacing.sm,
-  },
-  weekDay: {
-    flex: 1,
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.medium,
-  },
-  grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  cell: {
-    width: `${100 / 7}%`,
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cellSelected: {
-    backgroundColor: colors.accent,
-    borderRadius: 999,
-  },
-  cellPast: { opacity: 0.25 },
-  cellText: {
-    color: colors.textPrimary,
-    fontSize: typography.fontSize.sm,
-  },
-  cellTextSelected: { color: colors.black, fontWeight: typography.fontWeight.bold },
-  cellTextPast: { color: colors.textMuted },
-});
-
-// ── Modal base ─────────────────────────────────────────────
-function BottomModal({
-  visible,
-  title,
-  onClose,
-  children,
-}: {
-  visible: boolean;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={modal.overlay}>
-        <TouchableOpacity style={modal.backdrop} onPress={onClose} activeOpacity={1} />
-        <View style={modal.sheet}>
-          <View style={modal.handle} />
-          <View style={modal.headerRow}>
-            <Text style={modal.title}>{title}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={modal.closeBtn}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          {children}
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-const modal = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
-  sheet: {
-    backgroundColor: '#181818',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderWidth: 1,
-    borderColor: '#2A2A2A',
-    paddingBottom: 40,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#2A2A2A',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-  },
-  closeBtn: {
-    color: colors.textMuted,
-    fontSize: typography.fontSize.lg,
-    padding: 4,
-  },
-});
-
-// ── Pantalla principal ─────────────────────────────────────
-export default function BarberBookingScreen() {
+export default function BookingScreen() {
   const navigation = useNavigation<Nav>();
   const { params } = useRoute<Route>();
   const insets = useSafeAreaInsets();
 
-  const [selectedServices, setSelectedServices] = useState<BarberService[]>(() =>
-    SERVICES.filter(s => params.serviceIds?.includes(s.id)),
-  );
+  const { professional, services } = params;
+
+  const [selectedServices, setSelectedServices] = useState<BookingService[]>([]);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
@@ -297,11 +43,10 @@ export default function BarberBookingScreen() {
   const [showDate, setShowDate] = useState(false);
   const [showTime, setShowTime] = useState(false);
 
-  const barber = BARBERS.find(b => b.id === params.barberId);
   const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
 
-  const handleToggleService = (service: BarberService) => {
+  const handleToggleService = (service: BookingService) => {
     setSelectedServices(prev =>
       prev.find(s => s.id === service.id)
         ? prev.filter(s => s.id !== service.id)
@@ -323,8 +68,9 @@ export default function BarberBookingScreen() {
       Alert.alert('Selecciona fecha y hora', 'Elige un día y horario para tu cita.');
       return;
     }
-    navigation.push('BarberConfirm', {
-      barberName: barber?.name ?? '',
+    navigation.push('BookingConfirm', {
+      professionalName: professional.name,
+      module: params.module,
       day: selectedDay,
       slot: selectedSlot,
       total: totalPrice,
@@ -363,14 +109,12 @@ export default function BarberBookingScreen() {
     );
   };
 
-  // Label para botones
   const serviceLabel =
     selectedServices.length > 0
       ? `${selectedServices.length} servicio${selectedServices.length > 1 ? 's' : ''} · $${totalPrice}`
       : 'Elige tu servicio';
-
   const dateLabel = selectedDay ? formatDay(selectedDay) : 'Elige el día';
-  const timeLabel = selectedSlot ? selectedSlot : 'Elige la hora';
+  const timeLabel = selectedSlot ?? 'Elige la hora';
 
   return (
     <View style={styles.container}>
@@ -381,7 +125,7 @@ export default function BarberBookingScreen() {
         {/* Hero */}
         <View>
           <Image
-            source={barber?.heroImage ?? barber?.image}
+            source={professional.heroImage ?? professional.image}
             style={styles.hero}
             resizeMode="cover"
           />
@@ -393,16 +137,16 @@ export default function BarberBookingScreen() {
             </View>
           </SafeAreaView>
           <View style={styles.heroInfo}>
-            <Text style={styles.heroName}>{barber?.name}</Text>
-            <Text style={styles.heroSpecialty}>{barber?.specialty}</Text>
+            <Text style={styles.heroName}>{professional.name}</Text>
+            <Text style={styles.heroSpecialty}>{professional.specialty}</Text>
           </View>
         </View>
 
         <View style={styles.content}>
-          {/* Botones de selección */}
           <Text style={styles.sectionTitle}>Elige el servicio y la Fecha</Text>
           <Text style={styles.sectionSubtitle}>Puedes seleccionar más de uno</Text>
 
+          {/* Botón servicios */}
           <TouchableOpacity
             style={[styles.selectorBtn, selectedServices.length > 0 && styles.selectorBtnActive]}
             onPress={() => setShowServices(true)}
@@ -420,8 +164,9 @@ export default function BarberBookingScreen() {
             <Text style={styles.selectorArrow}>›</Text>
           </TouchableOpacity>
 
+          {/* Botón fecha */}
           <TouchableOpacity
-            style={[styles.selectorBtn, (selectedDay || selectedSlot) && styles.selectorBtnActive]}
+            style={[styles.selectorBtn, selectedDay && styles.selectorBtnActive]}
             onPress={() => setShowDate(true)}
             activeOpacity={0.8}
           >
@@ -432,6 +177,7 @@ export default function BarberBookingScreen() {
             <Text style={styles.selectorArrow}>›</Text>
           </TouchableOpacity>
 
+          {/* Botón hora — aparece al seleccionar día */}
           {selectedDay && (
             <TouchableOpacity
               style={[styles.selectorBtn, selectedSlot && styles.selectorBtnActive]}
@@ -454,13 +200,13 @@ export default function BarberBookingScreen() {
               <View style={styles.summaryCard}>
                 <View style={styles.summaryBarberRow}>
                   <Image
-                    source={barber?.image}
-                    style={styles.summaryBarberAvatar}
+                    source={professional.image}
+                    style={styles.summaryAvatar}
                     resizeMode="cover"
                   />
                   <View>
-                    <Text style={styles.summaryBarberName}>{barber?.name}</Text>
-                    <Text style={styles.summaryBarberSpecialty}>{barber?.specialty}</Text>
+                    <Text style={styles.summaryName}>{professional.name}</Text>
+                    <Text style={styles.summarySpecialty}>{professional.specialty}</Text>
                   </View>
                 </View>
 
@@ -487,12 +233,10 @@ export default function BarberBookingScreen() {
                     <Text style={styles.summaryValue}>{selectedSlot}</Text>
                   </View>
                 )}
-                {selectedServices.length > 0 && (
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>⏱ Duración</Text>
-                    <Text style={styles.summaryValue}>{totalDuration} min</Text>
-                  </View>
-                )}
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>⏱ Duración</Text>
+                  <Text style={styles.summaryValue}>{totalDuration} min</Text>
+                </View>
 
                 <View style={styles.summaryDivider} />
 
@@ -512,7 +256,7 @@ export default function BarberBookingScreen() {
         </View>
       </ScrollView>
 
-      {/* CTA fijo */}
+      {/* CTA */}
       <View style={[styles.ctaBar, { paddingBottom: insets.bottom + spacing.sm }]}>
         <TouchableOpacity
           style={[
@@ -533,7 +277,7 @@ export default function BarberBookingScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ── Modal 1: Servicios ── */}
+      {/* Modal Servicios */}
       <BottomModal
         visible={showServices}
         title="Elige tu servicio"
@@ -543,7 +287,7 @@ export default function BarberBookingScreen() {
           contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: spacing.lg }}
         >
           <Text style={styles.modalSubtitle}>Puedes seleccionar más de uno</Text>
-          {SERVICES.map(service => {
+          {services.map(service => {
             const isSelected = !!selectedServices.find(s => s.id === service.id);
             return (
               <TouchableOpacity
@@ -580,7 +324,7 @@ export default function BarberBookingScreen() {
         </ScrollView>
       </BottomModal>
 
-      {/* ── Modal 2: Fecha ── */}
+      {/* Modal Fecha */}
       <BottomModal visible={showDate} title="Elige el día" onClose={() => setShowDate(false)}>
         <CalendarPicker
           selectedDay={selectedDay}
@@ -593,7 +337,7 @@ export default function BarberBookingScreen() {
         />
       </BottomModal>
 
-      {/* ── Modal 3: Hora ── */}
+      {/* Modal Hora */}
       <BottomModal visible={showTime} title="Elige la hora" onClose={() => setShowTime(false)}>
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: spacing.lg }}
@@ -602,7 +346,6 @@ export default function BarberBookingScreen() {
           <View style={styles.slotsGrid}>{MORNING_SLOTS.map(renderSlot)}</View>
           <Text style={styles.turnLabel}>🌤 Tarde</Text>
           <View style={styles.slotsGrid}>{AFTERNOON_SLOTS.map(renderSlot)}</View>
-
           <View style={styles.legend}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#1C1C1C' }]} />
@@ -644,7 +387,6 @@ const styles = StyleSheet.create({
   heroSpecialty: { color: colors.textSecondary, fontSize: typography.fontSize.sm },
 
   content: { padding: spacing.md },
-
   sectionTitle: {
     color: colors.textPrimary,
     fontSize: typography.fontSize.lg,
@@ -657,7 +399,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
 
-  // Botones selectores
   selectorBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -671,11 +412,7 @@ const styles = StyleSheet.create({
   },
   selectorBtnActive: { borderColor: colors.accent },
   selectorIcon: { fontSize: 24, width: 32, textAlign: 'center' },
-  selectorLabel: {
-    flex: 1,
-    color: colors.textMuted,
-    fontSize: typography.fontSize.base,
-  },
+  selectorLabel: { flex: 1, color: colors.textMuted, fontSize: typography.fontSize.base },
   selectorLabelActive: { color: colors.textPrimary, fontWeight: typography.fontWeight.semibold },
   selectorArrow: { color: colors.accent, fontSize: 22 },
 
@@ -687,7 +424,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
 
-  // Resumen
   summaryCard: {
     backgroundColor: '#1C1C1C',
     borderRadius: borderRadius.lg,
@@ -697,19 +433,19 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   summaryBarberRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  summaryBarberAvatar: {
+  summaryAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderWidth: 2,
     borderColor: colors.accent,
   },
-  summaryBarberName: {
+  summaryName: {
     color: colors.textPrimary,
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
   },
-  summaryBarberSpecialty: { color: colors.textMuted, fontSize: typography.fontSize.xs },
+  summarySpecialty: { color: colors.textMuted, fontSize: typography.fontSize.xs },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   summaryLabel: { color: colors.textSecondary, fontSize: typography.fontSize.sm },
   summaryValue: {
@@ -740,7 +476,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Modal contenido
   modalSubtitle: {
     color: colors.textMuted,
     fontSize: typography.fontSize.sm,
@@ -759,7 +494,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
   },
 
-  // Servicios
   serviceCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -797,7 +531,6 @@ const styles = StyleSheet.create({
   },
   serviceCheckText: { color: colors.black, fontSize: 12, fontWeight: typography.fontWeight.bold },
 
-  // Slots
   turnLabel: {
     color: colors.textSecondary,
     fontSize: typography.fontSize.sm,
@@ -824,13 +557,11 @@ const styles = StyleSheet.create({
   slotTextSelected: { color: colors.black },
   slotTextUnavailable: { color: colors.textMuted },
 
-  // Leyenda
   legend: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
   legendText: { color: colors.textMuted, fontSize: typography.fontSize.xs },
 
-  // CTA
   ctaBar: {
     position: 'absolute',
     bottom: 0,

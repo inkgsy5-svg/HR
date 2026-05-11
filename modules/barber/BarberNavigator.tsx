@@ -5,6 +5,7 @@ import BarberHomeScreen from './screens/BarberHomeScreen';
 import BarberDetailScreen from './screens/BarberDetailScreen';
 import BarberBookingScreen from './screens/BarberBookingScreen';
 import BarberReviewsScreen from './screens/BarberReviewsScreen';
+import BarberConfirmScreen from './screens/BarberConfirmScreen';
 
 const Stack = createStackNavigator<BarberStackParamList>();
 
@@ -15,6 +16,14 @@ export default function BarberNavigator() {
       <Stack.Screen name="BarberDetail" component={BarberDetailScreen} />
       <Stack.Screen name="BarberBooking" component={BarberBookingScreen} />
       <Stack.Screen name="BarberReviews" component={BarberReviewsScreen} />
+      <Stack.Screen
+        name="BarberConfirm"
+        component={BarberConfirmScreen}
+        options={{
+          presentation: 'modal',
+          gestureEnabled: false, // evita cerrar con swipe accidental
+        }}
+      />
     </Stack.Navigator>
   );
 }
