@@ -156,7 +156,15 @@ export default function BookingScreen() {
               onPress={() => setShowServices(true)}
               activeOpacity={0.8}
             >
-              <Text style={styles.selectorIcon}>✂️</Text>
+              <Text style={styles.selectorIcon}>
+                {params.module === 'barber'
+                  ? '✂️'
+                  : params.module === 'piercing'
+                    ? '💎'
+                    : params.module === 'tattoo'
+                      ? '🖊️'
+                      : '✂️'}
+              </Text>
               <Text
                 style={[
                   styles.selectorLabel,

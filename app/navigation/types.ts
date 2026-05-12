@@ -53,6 +53,7 @@ export type MusicStackParamList = {
 export type PiercingStackParamList = {
   PiercingHome: undefined;
   PiercingGallery: undefined;
+  PiercingDetail: { id: string };
   PiercingBooking: { piercingId?: string };
 };
 

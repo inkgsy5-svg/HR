@@ -1,0 +1,68 @@
+import { BookingService } from '@app/booking/booking.types';
+
+export const PIERCING_SERVICES: BookingService[] = [
+  {
+    id: 'p1',
+    name: 'Lóbulo',
+    description: 'Perforación estándar en lóbulo de oreja',
+    price: 200,
+    duration: 20,
+    icon: '👂',
+  },
+  {
+    id: 'p2',
+    name: 'Hélix',
+    description: 'Perforación en cartílago superior de oreja',
+    price: 280,
+    duration: 25,
+    icon: '👂🏻',
+  },
+  {
+    id: 'p3',
+    name: 'Tragus',
+    description: 'Perforación en el pequeño cartílago frontal',
+    price: 300,
+    duration: 25,
+    icon: '💎',
+  },
+  {
+    id: 'p4',
+    name: 'Nariz',
+    description: 'Perforación en fosa nasal',
+    price: 250,
+    duration: 20,
+    icon: '👃',
+  },
+  {
+    id: 'p5',
+    name: 'Septum',
+    description: 'Perforación en tabique nasal',
+    price: 320,
+    duration: 30,
+    icon: '👃🏼',
+  },
+  {
+    id: 'p6',
+    name: 'Industrial',
+    description: 'Doble perforación conectada en cartílago',
+    price: 450,
+    duration: 40,
+    icon: '⚡',
+  },
+  {
+    id: 'p7',
+    name: 'Ceja',
+    description: 'Perforación superficial en ceja',
+    price: 280,
+    duration: 20,
+    icon: '👁',
+  },
+  {
+    id: 'p8',
+    name: 'Ombligo',
+    description: 'Perforación en ombligo con joya decorativa',
+    price: 350,
+    duration: 30,
+    icon: '🌸',
+  },
+];

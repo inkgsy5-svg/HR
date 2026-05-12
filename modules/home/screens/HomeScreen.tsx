@@ -20,6 +20,8 @@ import ArtistCircle from '@modules/tattoo/components/ArtistCircle';
 import { ARTISTS, Artist } from '@modules/tattoo/data/artists';
 import BarberCircle from '@modules/barber/components/BarberCircle';
 import { BARBERS, Barber } from '@modules/barber/data/barbers';
+import PiercerCircle from '@modules/piercing/components/PiercerCircle';
+import { PIERCERS, Piercer } from '@modules/piercing/data/piercers';
 
 type HomeNavProp = StackNavigationProp<AppStackParamList>;
 
@@ -62,7 +64,7 @@ const MODULES = [
     subtitle: 'Joyería y piercing',
     screen: 'Piercing' as const,
     accent: colors.modulePiercing,
-    image: null,
+    image: require('../../../assets/images/piercing/piercing-artist.jpeg') as number,
   },
   {
     id: 'resin',
@@ -84,6 +86,9 @@ export default function HomeScreen() {
 
   const [barberExpanded, setBarberExpanded] = useState(false);
   const [barberAnim] = useState(() => new Animated.Value(0));
+
+  const [piercingExpanded, setPiercingExpanded] = useState(false);
+  const [piercingAnim] = useState(() => new Animated.Value(0));
 
   const toggleExpand = useCallback(
     (expanded: boolean, setExpanded: (v: boolean) => void, anim: Animated.Value) => {
@@ -118,17 +123,36 @@ export default function HomeScreen() {
     [navigation],
   );
 
+  const handlePiercerPress = useCallback(
+    (piercer: Piercer) => {
+      navigation.navigate(
+        'Piercing' as never,
+        { screen: 'PiercingDetail', params: { id: piercer.id } } as never,
+      );
+    },
+    [navigation],
+  );
+
   const handleModulePress = useCallback(
     (item: (typeof MODULES)[number]) => {
       if (item.id === 'tattoo') {
         toggleExpand(tattooExpanded, setTattooExpanded, tattooAnim);
       } else if (item.id === 'barber') {
         toggleExpand(barberExpanded, setBarberExpanded, barberAnim);
-      } else {
-        navigation.navigate(item.screen as keyof AppStackParamList);
+      } else if (item.id === 'piercing') {
+        toggleExpand(piercingExpanded, setPiercingExpanded, piercingAnim);
       }
     },
-    [tattooExpanded, barberExpanded, tattooAnim, barberAnim, toggleExpand, navigation],
+    [
+      tattooExpanded,
+      barberExpanded,
+      piercingExpanded,
+      tattooAnim,
+      barberAnim,
+      piercingAnim,
+      toggleExpand,
+      navigation,
+    ],
   );
 
   return (
@@ -210,6 +234,21 @@ export default function HomeScreen() {
                   <View style={styles.artistsRow}>
                     {BARBERS.map(barber => (
                       <BarberCircle key={barber.id} barber={barber} onPress={handleBarberPress} />
+                    ))}
+                  </View>
+                </Animated.View>
+              )}
+
+              {/* Panel Piercing */}
+              {item.id === 'piercing' && (
+                <Animated.View style={[styles.artistsPanel, { height: piercingAnim }]}>
+                  <View style={styles.artistsRow}>
+                    {PIERCERS.map(piercer => (
+                      <PiercerCircle
+                        key={piercer.id}
+                        piercer={piercer}
+                        onPress={handlePiercerPress}
+                      />
                     ))}
                   </View>
                 </Animated.View>
