@@ -39,6 +39,7 @@ export type BarberStackParamList = {
 
 export type SmokeShopStackParamList = {
   SmokeShopHome: undefined;
+  SmokeShopDetail: { id: string };
   ProductList: { categoryId?: string };
   ProductDetail: { id: string };
   Cart: undefined;

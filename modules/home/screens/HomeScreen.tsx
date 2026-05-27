@@ -48,7 +48,7 @@ const MODULES = [
     subtitle: 'Productos selectos',
     screen: 'SmokeShop' as const,
     accent: colors.moduleSmokeShop,
-    image: null,
+    image: require('../../../assets/images/smoke-shop/banner.jpeg') as number,
   },
   {
     id: 'music',
@@ -141,6 +141,8 @@ export default function HomeScreen() {
         toggleExpand(barberExpanded, setBarberExpanded, barberAnim);
       } else if (item.id === 'piercing') {
         toggleExpand(piercingExpanded, setPiercingExpanded, piercingAnim);
+      } else {
+        navigation.navigate(item.screen as never);
       }
     },
     [
