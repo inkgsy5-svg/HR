@@ -56,7 +56,7 @@ const MODULES = [
     subtitle: 'Eventos y conciertos',
     screen: 'Music' as const,
     accent: colors.moduleMusic,
-    image: null,
+    image: require('../../../assets/images/music/music-artists.jpeg') as number,
   },
   {
     id: 'piercing',
@@ -72,7 +72,7 @@ const MODULES = [
     subtitle: 'Arte decorativo',
     screen: 'Resin' as const,
     accent: colors.moduleResin,
-    image: null,
+    image: require('../../../assets/images/resin/banner.jpeg') as number,
   },
 ];
 
@@ -94,11 +94,7 @@ export default function HomeScreen() {
     (expanded: boolean, setExpanded: (v: boolean) => void, anim: Animated.Value) => {
       const toValue = expanded ? 0 : PANEL_HEIGHT;
       setExpanded(!expanded);
-      Animated.timing(anim, {
-        toValue,
-        duration: 280,
-        useNativeDriver: false,
-      }).start();
+      Animated.timing(anim, { toValue, duration: 280, useNativeDriver: false }).start();
     },
     [],
   );
@@ -319,11 +315,7 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     letterSpacing: 2,
   },
-  moduleList: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: 160,
-    gap: spacing.sm,
-  },
+  moduleList: { paddingHorizontal: spacing.md, paddingBottom: 160, gap: spacing.sm },
   moduleCard: {
     borderRadius: borderRadius.lg,
     backgroundColor: colors.cardDark,
@@ -331,31 +323,15 @@ const styles = StyleSheet.create({
     height: 100,
   },
   moduleImageBg: { width: '100%', height: '100%' },
-  moduleOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    gap: 4,
-  },
-  moduleInfo: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    gap: 4,
-  },
+  moduleOverlay: { flex: 1, justifyContent: 'center', paddingHorizontal: spacing.md, gap: 4 },
+  moduleInfo: { flex: 1, justifyContent: 'center', paddingHorizontal: spacing.md, gap: 4 },
   moduleLabel: {
     color: colors.textPrimary,
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
   },
-  moduleSubtitle: {
-    color: colors.textModuleSubtitle,
-    fontSize: typography.fontSize.sm,
-  },
-  artistsPanel: {
-    overflow: 'hidden',
-    backgroundColor: colors.background,
-  },
+  moduleSubtitle: { color: colors.textModuleSubtitle, fontSize: typography.fontSize.sm },
+  artistsPanel: { overflow: 'hidden', backgroundColor: colors.background },
   artistsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
