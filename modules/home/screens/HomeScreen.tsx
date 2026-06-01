@@ -9,7 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppStackParamList } from '@app/navigation/types';
@@ -89,6 +89,19 @@ export default function HomeScreen() {
 
   const [piercingExpanded, setPiercingExpanded] = useState(false);
   const [piercingAnim] = useState(() => new Animated.Value(0));
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setTattooExpanded(false);
+        tattooAnim.setValue(0);
+        setBarberExpanded(false);
+        barberAnim.setValue(0);
+        setPiercingExpanded(false);
+        piercingAnim.setValue(0);
+      };
+    }, [tattooAnim, barberAnim, piercingAnim]),
+  );
 
   const toggleExpand = useCallback(
     (expanded: boolean, setExpanded: (v: boolean) => void, anim: Animated.Value) => {

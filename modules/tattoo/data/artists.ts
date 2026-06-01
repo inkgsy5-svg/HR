@@ -27,7 +27,7 @@ export const ARTISTS: Artist[] = [
   {
     id: 'julio',
     name: 'Julio',
-    specialty: 'Realismo & Blackwork',
+    specialty: 'Chicano & Lettering',
     image: require('../../../assets/images/tattoo/julio/profile.jpg') as number,
     rating: 4.8,
     reviewCount: 120,
