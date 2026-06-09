@@ -74,6 +74,14 @@ const MODULES = [
     accent: colors.moduleResin,
     image: require('../../../assets/images/resin/banner.jpeg') as number,
   },
+  {
+    id: 'merch',
+    label: 'Merch',
+    subtitle: 'Ropa y accesorios HR',
+    screen: 'Merch' as const,
+    accent: colors.moduleMerch,
+    image: require('../../../assets/images/merch/hero.jpeg') as number,
+  },
 ];
 
 const PANEL_HEIGHT = 210;

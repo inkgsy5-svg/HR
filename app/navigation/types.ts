@@ -87,6 +87,7 @@ export type AppStackParamList = {
     total: number;
     services: string[];
   };
+  Merch: undefined;
 };
 
 // Root

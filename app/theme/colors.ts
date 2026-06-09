@@ -47,6 +47,8 @@ export const colors = {
   tabIconInactive: 'rgba(255,255,255,0.45)',
   tabSeparator: 'rgba(255,255,255,0.2)',
   tabBackground: '#111111',
+
+  moduleMerch: '#C9A84C',
 };
 
 export type Colors = typeof colors;

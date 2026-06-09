@@ -10,6 +10,7 @@ import PiercingNavigator from '@modules/piercing/PiercingNavigator';
 import ResinNavigator from '@modules/resin/ResinNavigator';
 import BookingScreen from '@app/booking/BookingScreen';
 import BookingConfirmScreen from '@app/booking/BookingConfirmScreen';
+import MerchNavigator from '@modules/merch/MerchNavigator';
 
 const Stack = createStackNavigator<AppStackParamList>();
 
@@ -23,6 +24,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Music" component={MusicNavigator} />
       <Stack.Screen name="Piercing" component={PiercingNavigator} />
       <Stack.Screen name="Resin" component={ResinNavigator} />
+      <Stack.Screen name="Merch" component={MerchNavigator} />
       <Stack.Screen name="Booking" component={BookingScreen} />
       <Stack.Screen
         name="BookingConfirm"
