@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AppStackParamList } from './types';
 import BottomTabNavigator from './BottomTabNavigator';
 import TattooNavigator from '@modules/tattoo/TattooNavigator';
@@ -12,11 +12,17 @@ import BookingScreen from '@app/booking/BookingScreen';
 import BookingConfirmScreen from '@app/booking/BookingConfirmScreen';
 import MerchNavigator from '@modules/merch/MerchNavigator';
 
-const Stack = createStackNavigator<AppStackParamList>();
+const Stack = createNativeStackNavigator<AppStackParamList>();
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        gestureEnabled: true,
+      }}
+    >
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="Tattoo" component={TattooNavigator} />
       <Stack.Screen name="Barber" component={BarberNavigator} />

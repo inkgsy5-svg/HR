@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BarberStackParamList } from '@app/navigation/types';
 import BarberHomeScreen from './screens/BarberHomeScreen';
 import BarberDetailScreen from './screens/BarberDetailScreen';
@@ -7,11 +7,17 @@ import BarberBookingScreen from './screens/BarberBookingScreen';
 import BarberReviewsScreen from './screens/BarberReviewsScreen';
 import BarberConfirmScreen from './screens/BarberConfirmScreen';
 
-const Stack = createStackNavigator<BarberStackParamList>();
+const Stack = createNativeStackNavigator<BarberStackParamList>();
 
 export default function BarberNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        gestureEnabled: true,
+      }}
+    >
       <Stack.Screen name="BarberHome" component={BarberHomeScreen} />
       <Stack.Screen name="BarberDetail" component={BarberDetailScreen} />
       <Stack.Screen name="BarberBooking" component={BarberBookingScreen} />
@@ -19,10 +25,7 @@ export default function BarberNavigator() {
       <Stack.Screen
         name="BarberConfirm"
         component={BarberConfirmScreen}
-        options={{
-          presentation: 'modal',
-          gestureEnabled: false, // evita cerrar con swipe accidental
-        }}
+        options={{ presentation: 'modal', gestureEnabled: false }}
       />
     </Stack.Navigator>
   );
