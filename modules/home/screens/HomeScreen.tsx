@@ -12,8 +12,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
+import SearchModal from '../components/SearchModal';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import ArtistCircle from '@modules/tattoo/components/ArtistCircle';
@@ -88,6 +90,8 @@ const PANEL_HEIGHT = 210;
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeNavProp>();
+
+  const [searchVisible, setSearchVisible] = useState(false);
 
   const [tattooExpanded, setTattooExpanded] = useState(false);
   const [tattooAnim] = useState(() => new Animated.Value(0));
@@ -178,10 +182,12 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.logoText}>HR</Text>
-        <TouchableOpacity style={styles.searchBtn}>
-          <Text style={styles.searchIcon}>🔍</Text>
+        <TouchableOpacity style={styles.searchBtn} onPress={() => setSearchVisible(true)}>
+          <Ionicons name="search-outline" size={22} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
+
+      <SearchModal visible={searchVisible} onClose={() => setSearchVisible(false)} />
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <ImageBackground
@@ -297,8 +303,14 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
     letterSpacing: 3,
   },
-  searchBtn: { padding: spacing.xs },
-  searchIcon: { fontSize: 22 },
+  searchBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scroll: { flex: 1 },
   promoBanner: {
     marginHorizontal: spacing.md,

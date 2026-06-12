@@ -13,9 +13,15 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ResinStackParamList } from '@app/navigation/types';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
+
+type NavProp = StackNavigationProp<ResinStackParamList>;
 
 const { width } = Dimensions.get('window');
 const CARD_GAP = 8;
@@ -139,6 +145,7 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 export default function ResinHomeScreen() {
+  const navigation = useNavigation<NavProp>();
   const [saved, setSaved] = useState(false);
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -166,14 +173,8 @@ export default function ResinHomeScreen() {
             />
             <SafeAreaView edges={['top']}>
               <View style={styles.heroNav}>
-                <View />
-                <TouchableOpacity
-                  style={styles.heroNavBtn}
-                  onPress={() =>
-                    openWhatsApp('Hola, me interesa conocer más sobre sus cuadros de resina.')
-                  }
-                >
-                  <Text style={styles.heroNavText}>💬</Text>
+                <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
+                  <Ionicons name="arrow-back" size={20} color="#000000" />
                 </TouchableOpacity>
               </View>
             </SafeAreaView>
@@ -421,12 +422,13 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   heroNavBtn: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 20,
+    height: 34,
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  heroNavText: { color: colors.white, fontSize: 20 },
 
   infoSection: {
     alignItems: 'center',

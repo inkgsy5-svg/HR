@@ -13,7 +13,9 @@ import {
   Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
@@ -179,15 +181,14 @@ export default function MerchHomeScreen() {
               colors={['rgba(0,0,0,0.35)', 'transparent', 'rgba(0,0,0,0.55)']}
               style={StyleSheet.absoluteFill}
             />
+          </ImageBackground>
+          <SafeAreaView edges={['top']} style={StyleSheet.absoluteFill} pointerEvents="box-none">
             <View style={styles.heroNav}>
               <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
-                <Text style={styles.heroNavText}>←</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.heroNavBtn}>
-                <Text style={styles.heroNavText}>🔍</Text>
+                <Ionicons name="arrow-back" size={20} color="#000000" />
               </TouchableOpacity>
             </View>
-          </ImageBackground>
+          </SafeAreaView>
         </View>
 
         {/* ── Info ── */}
@@ -413,12 +414,13 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   heroNavBtn: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 20,
+    height: 34,
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  heroNavText: { color: colors.white, fontSize: 20 },
 
   infoSection: {
     alignItems: 'center',

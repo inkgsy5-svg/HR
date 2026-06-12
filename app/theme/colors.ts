@@ -43,10 +43,10 @@ export const colors = {
   transparent: 'transparent',
 
   // Tab Bar
-  tabIconActive: '#FFFFFF',
+  tabIconActive: '#FFA500',
   tabIconInactive: 'rgba(255,255,255,0.45)',
   tabSeparator: 'rgba(255,255,255,0.2)',
-  tabBackground: '#111111',
+  tabBackground: 'rgba(14, 14, 14, 0.72)',
 
   moduleMerch: '#C9A84C',
 };

@@ -7,7 +7,9 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false, cardStyle: { backgroundColor: '#111111' } }}
+    >
       <Stack.Screen name="App" component={AppNavigator} />
     </Stack.Navigator>
   );

@@ -1,5 +1,10 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { Easing } from 'react-native';
+import {
+  createStackNavigator,
+  CardStyleInterpolators,
+  TransitionSpec,
+} from '@react-navigation/stack';
 import { AppStackParamList } from './types';
 import BottomTabNavigator from './BottomTabNavigator';
 import TattooNavigator from '@modules/tattoo/TattooNavigator';
@@ -14,9 +19,25 @@ import MerchNavigator from '@modules/merch/MerchNavigator';
 
 const Stack = createStackNavigator<AppStackParamList>();
 
+const openSpec: TransitionSpec = {
+  animation: 'timing',
+  config: { duration: 220, easing: Easing.out(Easing.cubic) },
+};
+const closeSpec: TransitionSpec = {
+  animation: 'timing',
+  config: { duration: 180, easing: Easing.in(Easing.cubic) },
+};
+
 export default function AppNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: '#111111' },
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        transitionSpec: { open: openSpec, close: closeSpec },
+      }}
+    >
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
       <Stack.Screen name="Tattoo" component={TattooNavigator} />
       <Stack.Screen name="Barber" component={BarberNavigator} />

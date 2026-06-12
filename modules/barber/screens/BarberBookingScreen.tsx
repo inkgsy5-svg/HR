@@ -15,6 +15,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BarberStackParamList } from '@app/navigation/types';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
@@ -388,7 +389,7 @@ export default function BarberBookingScreen() {
           <SafeAreaView edges={['top']} style={StyleSheet.absoluteFill} pointerEvents="box-none">
             <View style={styles.heroNav}>
               <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
-                <Text style={styles.heroNavText}>←</Text>
+                <Ionicons name="arrow-back" size={20} color="#000000" />
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -629,12 +630,13 @@ const styles = StyleSheet.create({
   hero: { width: '100%', height: 220 },
   heroNav: { flexDirection: 'row', paddingHorizontal: spacing.md, paddingTop: spacing.sm },
   heroNavBtn: {
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderRadius: 20,
+    height: 34,
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  heroNavText: { color: colors.white, fontSize: 20 },
   heroInfo: { position: 'absolute', bottom: spacing.md, left: spacing.md },
   heroName: {
     color: colors.accent,
