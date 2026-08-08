@@ -9,7 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AppStackParamList } from '@app/navigation/types';
@@ -98,6 +98,19 @@ export default function HomeScreen() {
   const [piercingExpanded, setPiercingExpanded] = useState(false);
   const [piercingAnim] = useState(() => new Animated.Value(0));
 
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setTattooExpanded(false);
+        tattooAnim.setValue(0);
+        setBarberExpanded(false);
+        barberAnim.setValue(0);
+        setPiercingExpanded(false);
+        piercingAnim.setValue(0);
+      };
+    }, [tattooAnim, barberAnim, piercingAnim]),
+  );
+
   const toggleExpand = useCallback(
     (expanded: boolean, setExpanded: (v: boolean) => void, anim: Animated.Value) => {
       const toValue = expanded ? 0 : PANEL_HEIGHT;
@@ -165,32 +178,35 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.logoText}>HR</Text>
-        <TouchableOpacity style={styles.searchBtn}>
+        <TouchableOpacity
+          style={styles.searchBtn}
+          onPress={() => navigation.navigate('Search' as never)}
+        >
           <Text style={styles.searchIcon}>🔍</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        <ImageBackground
-          source={require('../../../assets/images/home/promo-bg.webp')}
-          style={styles.promoBanner}
-          resizeMode="cover"
+      <ImageBackground
+        source={require('../../../assets/images/home/promo-bg.webp')}
+        style={styles.promoBanner}
+        resizeMode="cover"
+      >
+        <LinearGradient
+          colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.promoOverlay}
         >
-          <LinearGradient
-            colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.promoOverlay}
-          >
-            <View style={styles.promoContent}>
-              <Text style={styles.promoTitle}>¡Promociones del día!</Text>
-            </View>
-            <TouchableOpacity style={styles.promoButton}>
-              <Text style={styles.promoButtonText}>VER OFERTAS</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </ImageBackground>
+          <View style={styles.promoContent}>
+            <Text style={styles.promoTitle}>¡Promociones del día!</Text>
+          </View>
+          <TouchableOpacity style={styles.promoButton}>
+            <Text style={styles.promoButtonText}>VER OFERTAS</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
 
+      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.moduleList}>
           {MODULES.map(item => (
             <View key={item.id}>
@@ -295,7 +311,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.accent,
     overflow: 'hidden',
-    height: 120,
+    height: 100,
   },
   promoOverlay: {
     flex: 1,
@@ -323,7 +339,12 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     letterSpacing: 2,
   },
-  moduleList: { paddingHorizontal: spacing.md, paddingBottom: 160, gap: spacing.sm },
+  moduleList: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: 160,
+    gap: spacing.sm,
+  },
   moduleCard: {
     borderRadius: borderRadius.lg,
     backgroundColor: colors.cardDark,
