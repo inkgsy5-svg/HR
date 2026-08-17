@@ -22,6 +22,8 @@ import BarberCircle from '@modules/barber/components/BarberCircle';
 import { BARBERS, Barber } from '@modules/barber/data/barbers';
 import PiercerCircle from '@modules/piercing/components/PiercerCircle';
 import { PIERCERS, Piercer } from '@modules/piercing/data/piercers';
+import MusicArtistCircle from '@modules/music/components/ArtistCircle';
+import { ARTISTS as MUSIC_ARTISTS, Artist as MusicArtist } from '@modules/music/data/artists';
 
 type HomeNavProp = StackNavigationProp<AppStackParamList>;
 
@@ -98,6 +100,9 @@ export default function HomeScreen() {
   const [piercingExpanded, setPiercingExpanded] = useState(false);
   const [piercingAnim] = useState(() => new Animated.Value(0));
 
+  const [musicExpanded, setMusicExpanded] = useState(false);
+  const [musicAnim] = useState(() => new Animated.Value(0));
+
   useFocusEffect(
     useCallback(() => {
       return () => {
@@ -107,8 +112,10 @@ export default function HomeScreen() {
         barberAnim.setValue(0);
         setPiercingExpanded(false);
         piercingAnim.setValue(0);
+        setMusicExpanded(false);
+        musicAnim.setValue(0);
       };
-    }, [tattooAnim, barberAnim, piercingAnim]),
+    }, [tattooAnim, barberAnim, piercingAnim, musicAnim]),
   );
 
   const toggleExpand = useCallback(
@@ -150,6 +157,16 @@ export default function HomeScreen() {
     [navigation],
   );
 
+  const handleMusicArtistPress = useCallback(
+    (artist: MusicArtist) => {
+      navigation.navigate(
+        'Music' as never,
+        { screen: 'MusicDetail', params: { id: artist.id } } as never,
+      );
+    },
+    [navigation],
+  );
+
   const handleModulePress = useCallback(
     (item: (typeof MODULES)[number]) => {
       if (item.id === 'tattoo') {
@@ -158,6 +175,8 @@ export default function HomeScreen() {
         toggleExpand(barberExpanded, setBarberExpanded, barberAnim);
       } else if (item.id === 'piercing') {
         toggleExpand(piercingExpanded, setPiercingExpanded, piercingAnim);
+      } else if (item.id === 'music') {
+        toggleExpand(musicExpanded, setMusicExpanded, musicAnim);
       } else {
         navigation.navigate(item.screen as never);
       }
@@ -166,9 +185,11 @@ export default function HomeScreen() {
       tattooExpanded,
       barberExpanded,
       piercingExpanded,
+      musicExpanded,
       tattooAnim,
       barberAnim,
       piercingAnim,
+      musicAnim,
       toggleExpand,
       navigation,
     ],
@@ -270,6 +291,21 @@ export default function HomeScreen() {
                         key={piercer.id}
                         piercer={piercer}
                         onPress={handlePiercerPress}
+                      />
+                    ))}
+                  </View>
+                </Animated.View>
+              )}
+
+              {/* Panel Música */}
+              {item.id === 'music' && (
+                <Animated.View style={[styles.artistsPanel, { height: musicAnim }]}>
+                  <View style={styles.artistsRow}>
+                    {MUSIC_ARTISTS.map(artist => (
+                      <MusicArtistCircle
+                        key={artist.id}
+                        artist={artist}
+                        onPress={handleMusicArtistPress}
                       />
                     ))}
                   </View>
