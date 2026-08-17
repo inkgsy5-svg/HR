@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AppStackParamList } from './types';
 import BottomTabNavigator from './BottomTabNavigator';
+import AuthNavigator from './AuthNavigator';
 import TattooNavigator from '@modules/tattoo/TattooNavigator';
 import BarberNavigator from '@modules/barber/BarberNavigator';
 import SmokeShopNavigator from '@modules/smoke-shop/SmokeShopNavigator';
@@ -24,6 +25,11 @@ export default function AppNavigator() {
       }}
     >
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+      <Stack.Screen
+        name="Auth"
+        component={AuthNavigator}
+        options={{ presentation: 'modal', gestureEnabled: false }}
+      />
       <Stack.Screen name="Tattoo" component={TattooNavigator} />
       <Stack.Screen name="Barber" component={BarberNavigator} />
       <Stack.Screen name="SmokeShop" component={SmokeShopNavigator} />

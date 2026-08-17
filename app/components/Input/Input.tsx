@@ -18,6 +18,7 @@ interface InputProps extends TextInputProps {
   hint?: string;
   rightIcon?: React.ReactNode;
   containerStyle?: ViewStyle;
+  wrapperStyle?: ViewStyle;
   accentColor?: string;
 }
 
@@ -27,6 +28,7 @@ export default function Input({
   hint,
   rightIcon,
   containerStyle,
+  wrapperStyle,
   accentColor = colors.secondary,
   ...rest
 }: InputProps) {
@@ -38,6 +40,7 @@ export default function Input({
       <View
         style={[
           styles.inputWrapper,
+          wrapperStyle,
           isFocused && { borderColor: accentColor },
           error ? styles.hasError : null,
         ]}

@@ -47,8 +47,7 @@ export type SmokeShopStackParamList = {
 
 export type MusicStackParamList = {
   MusicHome: undefined;
-  EventList: undefined;
-  EventDetail: { id: string };
+  MusicDetail: { id: string };
 };
 
 export type PiercingStackParamList = {
@@ -68,6 +67,7 @@ export type ResinStackParamList = {
 // App Stack
 export type AppStackParamList = {
   MainTabs: NavigatorScreenParams<BottomTabParamList>;
+  Auth: NavigatorScreenParams<AuthStackParamList>;
   Tattoo: NavigatorScreenParams<TattooStackParamList>;
   Barber: NavigatorScreenParams<BarberStackParamList>;
   SmokeShop: NavigatorScreenParams<SmokeShopStackParamList>;
