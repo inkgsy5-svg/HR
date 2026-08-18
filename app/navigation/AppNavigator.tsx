@@ -1,12 +1,8 @@
 import React from 'react';
-import { Easing } from 'react-native';
-import {
-  createStackNavigator,
-  CardStyleInterpolators,
-  TransitionSpec,
-} from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AppStackParamList } from './types';
 import BottomTabNavigator from './BottomTabNavigator';
+import AuthNavigator from './AuthNavigator';
 import TattooNavigator from '@modules/tattoo/TattooNavigator';
 import BarberNavigator from '@modules/barber/BarberNavigator';
 import SmokeShopNavigator from '@modules/smoke-shop/SmokeShopNavigator';
@@ -17,28 +13,23 @@ import BookingScreen from '@app/booking/BookingScreen';
 import BookingConfirmScreen from '@app/booking/BookingConfirmScreen';
 import MerchNavigator from '@modules/merch/MerchNavigator';
 
-const Stack = createStackNavigator<AppStackParamList>();
-
-const openSpec: TransitionSpec = {
-  animation: 'timing',
-  config: { duration: 220, easing: Easing.out(Easing.cubic) },
-};
-const closeSpec: TransitionSpec = {
-  animation: 'timing',
-  config: { duration: 180, easing: Easing.in(Easing.cubic) },
-};
+const Stack = createNativeStackNavigator<AppStackParamList>();
 
 export default function AppNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: '#111111' },
-        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-        transitionSpec: { open: openSpec, close: closeSpec },
+        animation: 'slide_from_right',
+        gestureEnabled: true,
       }}
     >
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+      <Stack.Screen
+        name="Auth"
+        component={AuthNavigator}
+        options={{ presentation: 'modal', gestureEnabled: false }}
+      />
       <Stack.Screen name="Tattoo" component={TattooNavigator} />
       <Stack.Screen name="Barber" component={BarberNavigator} />
       <Stack.Screen name="SmokeShop" component={SmokeShopNavigator} />

@@ -13,8 +13,8 @@ import ImageLightbox from '@modules/barber/components/ImageLightbox';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { TattooStackParamList, AppStackParamList } from '@app/navigation/types';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
@@ -99,7 +99,7 @@ export default function TattooDetailScreen() {
           <SafeAreaView edges={['top']} style={StyleSheet.absoluteFill} pointerEvents="box-none">
             <View style={styles.heroNav}>
               <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={20} color="#000000" />
+                <MaterialCommunityIcons name="arrow-left" size={20} color={colors.white} />
               </TouchableOpacity>
             </View>
           </SafeAreaView>

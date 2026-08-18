@@ -1,33 +1,19 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-  Linking,
-} from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import ImageLightbox from '@modules/barber/components/ImageLightbox';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { PiercingStackParamList, AppStackParamList } from '@app/navigation/types';
+import { MusicStackParamList, AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
-import { PIERCERS, PiercerReview } from '../data/piercers';
-import { PIERCING_SERVICES } from '../data/services';
-import ImageLightbox from '../components/ImageLightbox';
+import { ARTISTS, Review } from '../data/artists';
 
-type NavProp = StackNavigationProp<PiercingStackParamList>;
+type NavProp = StackNavigationProp<MusicStackParamList>;
 type AppNavProp = StackNavigationProp<AppStackParamList>;
-type RouteType = RouteProp<PiercingStackParamList, 'PiercingDetail'>;
-
-const { width } = Dimensions.get('window');
-const GALLERY_GAP = 3;
-const CELL_SIZE = (width - spacing.md * 2 - GALLERY_GAP * 3) / 4;
+type RouteType = RouteProp<MusicStackParamList, 'MusicDetail'>;
 
 function StarRow({ rating }: { rating: number }) {
   const full = Math.floor(rating);
@@ -39,7 +25,7 @@ function StarRow({ rating }: { rating: number }) {
   );
 }
 
-function ReviewCard({ review }: { review: PiercerReview }) {
+function ReviewCard({ review }: { review: Review }) {
   return (
     <View style={styles.reviewCard}>
       <View style={styles.reviewAvatar}>
@@ -57,35 +43,34 @@ function ReviewCard({ review }: { review: PiercerReview }) {
   );
 }
 
-export default function PiercingDetailScreen() {
+export default function MusicDetailScreen() {
   const navigation = useNavigation<NavProp>();
   const appNavigation = useNavigation<AppNavProp>();
   const { params } = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState(false);
-  const [lightboxVisible, setLightboxVisible] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const piercer = PIERCERS.find(p => p.id === params.id);
-  if (!piercer) return null;
+  const artist = ARTISTS.find(a => a.id === params.id);
+  if (!artist) return null;
 
   function openWhatsApp() {
-    const msg = `Hola ${piercer!.name}, me interesa agendar una cita para un piercing.`;
-    Linking.openURL(`whatsapp://send?phone=${piercer!.whatsapp}&text=${encodeURIComponent(msg)}`);
+    const msg = `Hola ${artist!.name}, me interesa saber más sobre tus eventos.`;
+    Linking.openURL(`whatsapp://send?phone=${artist!.whatsapp}&text=${encodeURIComponent(msg)}`);
   }
 
   function handleBook() {
     appNavigation.navigate('Booking', {
-      module: 'piercing',
+      module: 'music',
       professional: {
-        id: piercer!.id,
-        name: piercer!.name,
-        specialty: piercer!.specialty,
-        image: piercer!.image,
-        heroImage: piercer!.heroImage,
-        whatsapp: piercer!.whatsapp,
+        id: artist!.id,
+        name: artist!.name,
+        specialty: artist!.specialty,
+        image: artist!.image,
+        heroImage: artist!.heroImage,
+        whatsapp: artist!.whatsapp,
       },
-      services: PIERCING_SERVICES,
+      services: [],
     });
   }
 
@@ -95,13 +80,9 @@ export default function PiercingDetailScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 110 }}
       >
-        {/* Hero */}
+        {/* Hero Image */}
         <View>
-          <Image
-            source={piercer.heroImage ?? piercer.image}
-            style={styles.hero}
-            resizeMode="cover"
-          />
+          <Image source={artist.heroImage ?? artist.image} style={styles.hero} resizeMode="cover" />
           <SafeAreaView edges={['top']} style={StyleSheet.absoluteFill} pointerEvents="box-none">
             <View style={styles.heroNav}>
               <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
@@ -111,32 +92,33 @@ export default function PiercingDetailScreen() {
           </SafeAreaView>
         </View>
 
-        {/* Perfil */}
+        {/* Nombre y estrellas */}
         <View style={styles.profileSection}>
-          <Text style={styles.name}>{piercer.name}</Text>
-          <Text style={styles.specialty}>{piercer.specialty}</Text>
+          <Text style={styles.name}>{artist.name}</Text>
+          <Text style={styles.specialty}>{artist.specialty}</Text>
 
           <View style={styles.ratingRow}>
-            <StarRow rating={piercer.rating} />
+            <StarRow rating={artist.rating} />
             <Text style={styles.ratingText}>
               {' '}
-              {piercer.rating} ({piercer.reviewCount})
+              {artist.rating} ({artist.reviewCount})
             </Text>
             <Text style={styles.bullet}> • </Text>
             <View
               style={[
                 styles.availDot,
-                { backgroundColor: piercer.availableToday ? colors.success : colors.error },
+                { backgroundColor: artist.availableToday ? colors.success : colors.error },
               ]}
             />
             <Text style={styles.availText}>
-              {piercer.availableToday ? 'Disponible hoy' : 'No disponible hoy'}
+              {artist.availableToday ? 'Disponible hoy' : 'No disponible hoy'}
             </Text>
           </View>
 
+          {/* Botones de acción */}
           <View style={styles.actionRow}>
             <TouchableOpacity style={styles.actionBtn} onPress={handleBook}>
-              <Text style={styles.actionBtnText}>📅 Agendar cita</Text>
+              <Text style={styles.actionBtnText}>📅 Agendar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionBtn} onPress={openWhatsApp}>
               <Text style={styles.actionBtnText}>💬 Mensaje</Text>
@@ -150,65 +132,67 @@ export default function PiercingDetailScreen() {
           </View>
         </View>
 
-        {/* Especialidades y galería */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Especialidades</Text>
-          <View style={styles.stylesRow}>
-            {piercer.styles.map(s => (
-              <Text key={s} style={styles.styleTag}>
-                ✓ {s}
-              </Text>
-            ))}
+        {/* Géneros y galería */}
+        {(artist.styles.length > 0 || artist.gallery.length > 0) && (
+          <View style={styles.section}>
+            {artist.styles.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>Géneros</Text>
+                <View style={styles.stylesRow}>
+                  {artist.styles.map(s => (
+                    <Text key={s} style={styles.styleTag}>
+                      ✓ {s}
+                    </Text>
+                  ))}
+                </View>
+              </>
+            )}
+            {artist.gallery.length > 0 && (
+              <View style={styles.gallery}>
+                {artist.gallery.map((img, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => setLightboxIndex(i)}
+                    activeOpacity={0.85}
+                  >
+                    <Image source={img} style={styles.galleryCell} resizeMode="cover" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
-          <View style={styles.gallery}>
-            {piercer.gallery.map((img, i) => (
-              <TouchableOpacity
-                key={i}
-                onPress={() => {
-                  setLightboxIndex(i);
-                  setLightboxVisible(true);
-                }}
-                activeOpacity={0.85}
-              >
-                <Image source={img} style={styles.galleryCell} resizeMode="cover" />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        )}
 
         {/* Información */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Información</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoItem}>📅 Experiencia: {piercer.experience}</Text>
-            <Text style={styles.infoItem}>✅ Material esterilizado</Text>
-          </View>
-          <Text style={styles.infoItem}>📍 Sucursal: {piercer.location}</Text>
+          <Text style={styles.infoItem}>📍 {artist.location}</Text>
         </View>
 
         {/* Reseñas */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Reseñas</Text>
-          {piercer.reviews.map(r => (
-            <ReviewCard key={r.id} review={r} />
-          ))}
-        </View>
+        {artist.reviews.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Reseñas</Text>
+            {artist.reviews.map(r => (
+              <ReviewCard key={r.id} review={r} />
+            ))}
+          </View>
+        )}
       </ScrollView>
 
-      {/* CTA */}
+      <ImageLightbox
+        visible={lightboxIndex !== null}
+        images={artist.gallery}
+        initialIndex={lightboxIndex ?? 0}
+        onClose={() => setLightboxIndex(null)}
+      />
+
+      {/* CTA fijo abajo */}
       <View style={[styles.ctaBar, { paddingBottom: insets.bottom + spacing.sm }]}>
         <TouchableOpacity style={styles.ctaButton} onPress={handleBook}>
-          <Text style={styles.ctaText}>AGENDAR CITA CON {piercer.name.toUpperCase()}</Text>
+          <Text style={styles.ctaText}>AGENDAR CON {artist.name.toUpperCase()}</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Lightbox con contador y swipe */}
-      <ImageLightbox
-        visible={lightboxVisible}
-        images={piercer.gallery}
-        initialIndex={lightboxIndex}
-        onClose={() => setLightboxVisible(false)}
-      />
     </View>
   );
 }
@@ -216,17 +200,21 @@ export default function PiercingDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
 
+  // Hero
   hero: { width: '100%', height: 300 },
-  heroNav: { flexDirection: 'row', paddingHorizontal: spacing.md, paddingTop: spacing.sm },
+  heroNav: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+  },
   heroNavBtn: {
-    height: 34,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 20,
     paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: colors.gold,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 6,
   },
 
+  // Perfil
   profileSection: {
     alignItems: 'center',
     paddingHorizontal: spacing.md,
@@ -235,23 +223,27 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   name: {
-    color: colors.accent,
+    color: colors.gold,
     fontSize: typography.fontSize.xxxl,
     fontWeight: typography.fontWeight.bold,
   },
-  specialty: { color: colors.textSecondary, fontSize: typography.fontSize.base },
+  specialty: {
+    color: colors.textSecondary,
+    fontSize: typography.fontSize.base,
+  },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
     justifyContent: 'center',
   },
-  stars: { color: colors.accent, fontSize: 14 },
+  stars: { color: colors.gold, fontSize: 14 },
   ratingText: { color: colors.textPrimary, fontSize: typography.fontSize.sm },
   bullet: { color: colors.textMuted },
   availDot: { width: 8, height: 8, borderRadius: 4 },
   availText: { color: colors.textSecondary, fontSize: typography.fontSize.sm, marginLeft: 4 },
 
+  // Botones
   actionRow: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -261,43 +253,65 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.gold,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  actionBtnSaved: { backgroundColor: colors.accent },
+  actionBtnSaved: {
+    backgroundColor: colors.gold,
+  },
   actionBtnText: {
-    color: colors.accent,
+    color: colors.gold,
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
   },
 
+  // Secciones
   section: {
     paddingHorizontal: spacing.md,
     paddingBottom: spacing.lg,
     gap: spacing.sm,
   },
   sectionTitle: {
-    color: colors.accent,
+    color: colors.gold,
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
     marginBottom: spacing.xs,
   },
 
-  stylesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  styleTag: { color: colors.textSecondary, fontSize: typography.fontSize.sm },
+  // Estilos/tags
+  stylesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  styleTag: {
+    color: colors.textSecondary,
+    fontSize: typography.fontSize.sm,
+  },
 
-  gallery: { flexDirection: 'row', flexWrap: 'wrap', gap: GALLERY_GAP, marginTop: spacing.xs },
-  galleryCell: { width: CELL_SIZE, height: CELL_SIZE, borderRadius: borderRadius.sm },
+  // Galería
+  gallery: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 3,
+    marginTop: spacing.xs,
+  },
+  galleryCell: {
+    width: 84,
+    height: 84,
+    borderRadius: borderRadius.sm,
+  },
 
-  infoRow: { flexDirection: 'row', gap: spacing.lg, flexWrap: 'wrap' },
+  // Info
   infoItem: {
     color: colors.textSecondary,
     fontSize: typography.fontSize.sm,
     marginBottom: spacing.xs,
   },
 
+  // Reseñas
   reviewCard: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -308,7 +322,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -318,15 +332,28 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
   },
   reviewBody: { flex: 1 },
-  reviewTopRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  reviewTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
   reviewAuthor: {
     color: colors.textPrimary,
     fontWeight: typography.fontWeight.bold,
     fontSize: typography.fontSize.sm,
   },
-  reviewTime: { color: colors.textMuted, fontSize: typography.fontSize.xs },
-  reviewComment: { color: colors.textSecondary, fontSize: typography.fontSize.sm, marginTop: 2 },
+  reviewTime: {
+    color: colors.textMuted,
+    fontSize: typography.fontSize.xs,
+  },
+  reviewComment: {
+    color: colors.textSecondary,
+    fontSize: typography.fontSize.sm,
+    marginTop: 2,
+  },
 
+  // CTA
   ctaBar: {
     position: 'absolute',
     bottom: 0,
@@ -336,10 +363,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.divider,
   },
   ctaButton: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.gold,
     borderRadius: borderRadius.lg,
     paddingVertical: spacing.md,
     alignItems: 'center',

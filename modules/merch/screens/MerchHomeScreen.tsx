@@ -15,7 +15,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
@@ -181,14 +181,14 @@ export default function MerchHomeScreen() {
               colors={['rgba(0,0,0,0.35)', 'transparent', 'rgba(0,0,0,0.55)']}
               style={StyleSheet.absoluteFill}
             />
+            <SafeAreaView edges={['top']}>
+              <View style={styles.heroNav}>
+                <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
+                  <MaterialCommunityIcons name="arrow-left" size={20} color={colors.white} />
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
           </ImageBackground>
-          <SafeAreaView edges={['top']} style={StyleSheet.absoluteFill} pointerEvents="box-none">
-            <View style={styles.heroNav}>
-              <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={20} color="#000000" />
-              </TouchableOpacity>
-            </View>
-          </SafeAreaView>
         </View>
 
         {/* ── Info ── */}

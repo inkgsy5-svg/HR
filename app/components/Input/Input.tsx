@@ -18,6 +18,8 @@ interface InputProps extends TextInputProps {
   hint?: string;
   rightIcon?: React.ReactNode;
   containerStyle?: ViewStyle;
+  wrapperStyle?: ViewStyle;
+  accentColor?: string;
 }
 
 export default function Input({
@@ -26,6 +28,8 @@ export default function Input({
   hint,
   rightIcon,
   containerStyle,
+  wrapperStyle,
+  accentColor = colors.secondary,
   ...rest
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
@@ -34,7 +38,12 @@ export default function Input({
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
       <View
-        style={[styles.inputWrapper, isFocused && styles.focused, error ? styles.hasError : null]}
+        style={[
+          styles.inputWrapper,
+          wrapperStyle,
+          isFocused && { borderColor: accentColor },
+          error ? styles.hasError : null,
+        ]}
       >
         <TextInput
           style={styles.input}
@@ -68,7 +77,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
   },
-  focused: { borderColor: colors.secondary },
   hasError: { borderColor: colors.error },
   input: {
     flex: 1,

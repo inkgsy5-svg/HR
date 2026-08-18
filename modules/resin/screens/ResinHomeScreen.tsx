@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -14,101 +14,22 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { ResinStackParamList } from '@app/navigation/types';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
-
-type NavProp = StackNavigationProp<ResinStackParamList>;
+import { RESIN_CATEGORIES } from '../data/categories';
 
 const { width } = Dimensions.get('window');
 const CARD_GAP = 8;
 const CARD_W = (width - spacing.md * 2 - CARD_GAP) / 2;
 const SHOP_WHATSAPP = '521234567890';
 
-const CATEGORY_GRID = [
-  {
-    id: 'cuadros',
-    name: 'Cuadros Decorativos',
-    icon: '🖼️',
-    grad: ['#2a1a08', '#18100a'] as const,
-    color: '#C9A050',
-  },
-  {
-    id: 'piezas',
-    name: 'Piezas Personalizadas',
-    icon: '✨',
-    grad: ['#2a0a1a', '#180614'] as const,
-    color: '#E94560',
-  },
-  {
-    id: 'regalos',
-    name: 'Regalos Especiales',
-    icon: '🎁',
-    grad: ['#0a2010', '#06140a'] as const,
-    color: '#4CAF50',
-  },
-];
+const ARTWORKS = RESIN_CATEGORIES.flatMap(cat =>
+  cat.artworks.map(artwork => ({ ...artwork, category: cat.id, color: cat.color })),
+);
 
-const ARTWORKS = [
-  {
-    id: 'a1',
-    title: 'Where I Left My Daydream',
-    artist: 'Gera',
-    price: 500,
-    icon: '🖼️',
-    color: '#C9A050',
-    year: 2026,
-    country: 'México',
-    materials: 'Madera y Resina',
-    size: '50 x 50 cm',
-    image: require('../../../assets/images/resin/gallery-1.jpg'),
-  },
-  {
-    id: 'a2',
-    title: 'Ocean Waves',
-    artist: 'Gera',
-    price: 500,
-    icon: '🌊',
-    color: '#00BCD4',
-    year: 2026,
-    country: 'México',
-    materials: 'Madera y Resina',
-    size: '50 x 50 cm',
-    image: require('../../../assets/images/resin/gallery-2.jpg'),
-  },
-  {
-    id: 'a3',
-    title: 'Purple Dream',
-    artist: 'Gera',
-    price: 500,
-    icon: '✨',
-    color: '#E94560',
-    year: 2026,
-    country: 'México',
-    materials: 'Madera y Resina',
-    size: '50 x 50 cm',
-    image: require('../../../assets/images/resin/gallery-5.jpg'),
-  },
-  {
-    id: 'a4',
-    title: 'Love in Colors',
-    artist: 'Gera',
-    price: 500,
-    icon: '🎁',
-    color: '#4CAF50',
-    year: 2026,
-    country: 'México',
-    materials: 'Madera y Resina',
-    size: '50 x 50 cm',
-    image: require('../../../assets/images/resin/gallery-9.jpg'),
-  },
-];
-
-type Artwork = (typeof ARTWORKS)[0];
-type Category = (typeof CATEGORY_GRID)[0];
+type Artwork = (typeof ARTWORKS)[number];
 
 const REVIEWS = [
   {
@@ -145,13 +66,24 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 export default function ResinHomeScreen() {
-  const navigation = useNavigation<NavProp>();
+  const navigation = useNavigation();
   const [saved, setSaved] = useState(false);
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+  const filteredArtworks = useMemo(() => {
+    if (!activeFilter) return ARTWORKS;
+    return ARTWORKS.filter(a => a.category === activeFilter);
+  }, [activeFilter]);
+
+  const activeCategory = RESIN_CATEGORIES.find(c => c.id === activeFilter);
 
   function openWhatsApp(msg: string) {
     Linking.openURL(`whatsapp://send?phone=${SHOP_WHATSAPP}&text=${encodeURIComponent(msg)}`);
+  }
+
+  function handleCategoryPress(catId: string) {
+    setActiveFilter(prev => (prev === catId ? null : catId));
   }
 
   return (
@@ -174,7 +106,7 @@ export default function ResinHomeScreen() {
             <SafeAreaView edges={['top']}>
               <View style={styles.heroNav}>
                 <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
-                  <Ionicons name="arrow-back" size={20} color="#000000" />
+                  <MaterialCommunityIcons name="arrow-left" size={20} color={colors.white} />
                 </TouchableOpacity>
               </View>
             </SafeAreaView>
@@ -223,33 +155,52 @@ export default function ResinHomeScreen() {
         {/* Categorías */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Colecciones</Text>
-          <View style={styles.categoryGrid}>
-            {CATEGORY_GRID.map(cat => (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryRow}
+          >
+            {RESIN_CATEGORIES.map(cat => (
               <TouchableOpacity
                 key={cat.id}
-                style={styles.categoryCard}
-                activeOpacity={0.85}
-                onPress={() => setSelectedCategory(cat)}
+                style={styles.categoryCircleWrapper}
+                activeOpacity={0.8}
+                onPress={() => handleCategoryPress(cat.id)}
               >
-                <LinearGradient colors={cat.grad} style={styles.categoryGrad}>
+                <View
+                  style={[
+                    styles.categoryCircle,
+                    activeFilter === cat.id && styles.categoryCircleActive,
+                  ]}
+                >
                   <Text style={styles.categoryIcon}>{cat.icon}</Text>
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.7)']}
-                    style={styles.categoryOverlay}
-                  >
-                    <Text style={styles.categoryLabel}>{cat.name}</Text>
-                  </LinearGradient>
-                </LinearGradient>
+                </View>
+                <Text
+                  style={[styles.categoryLabel, activeFilter === cat.id && { color: colors.gold }]}
+                >
+                  {cat.name}
+                </Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* Obras destacadas */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Obras destacadas</Text>
+          <View style={styles.catalogHeader}>
+            <Text style={styles.sectionTitle}>
+              {activeCategory
+                ? `${activeCategory.icon} ${activeCategory.name}`
+                : '🖼️ Todas las obras'}
+            </Text>
+            {activeFilter && (
+              <TouchableOpacity onPress={() => setActiveFilter(null)}>
+                <Text style={styles.clearFilter}>Ver todo</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           <View style={styles.productsGrid}>
-            {ARTWORKS.map(artwork => (
+            {filteredArtworks.map(artwork => (
               <TouchableOpacity
                 key={artwork.id}
                 style={styles.productCard}
@@ -367,46 +318,6 @@ export default function ResinHomeScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-
-      {/* Modal Categoría */}
-      <Modal
-        visible={!!selectedCategory}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectedCategory(null)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setSelectedCategory(null)}>
-          <Pressable style={styles.modalSheet} onPress={e => e.stopPropagation()}>
-            {selectedCategory && (
-              <>
-                <LinearGradient colors={selectedCategory.grad} style={styles.modalHeader}>
-                  <Text style={{ fontSize: 64 }}>{selectedCategory.icon}</Text>
-                  <TouchableOpacity
-                    style={styles.modalCloseBtn}
-                    onPress={() => setSelectedCategory(null)}
-                  >
-                    <Text style={styles.modalCloseText}>✕</Text>
-                  </TouchableOpacity>
-                </LinearGradient>
-                <View style={styles.modalBody}>
-                  <Text style={styles.modalName}>{selectedCategory.name}</Text>
-                  <TouchableOpacity
-                    style={[styles.modalCta, { backgroundColor: selectedCategory.color }]}
-                    onPress={() => {
-                      setSelectedCategory(null);
-                      openWhatsApp(
-                        `Hola, me interesa la colección "${selectedCategory.name}". ¿Tienen disponibilidad?`,
-                      );
-                    }}
-                  >
-                    <Text style={styles.modalCtaText}>CONSULTAR COLECCIÓN</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </Pressable>
-        </Pressable>
-      </Modal>
     </View>
   );
 }
@@ -484,23 +395,37 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
 
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: CARD_GAP },
-  categoryCard: { width: CARD_W, height: 112, borderRadius: borderRadius.md, overflow: 'hidden' },
-  categoryGrad: { flex: 1, padding: spacing.sm },
-  categoryIcon: { fontSize: 28 },
-  categoryOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: spacing.sm,
-    paddingBottom: spacing.sm,
-    paddingTop: spacing.xl,
+  categoryRow: { flexDirection: 'row', paddingVertical: spacing.sm, gap: 16 },
+  categoryCircleWrapper: { alignItems: 'center', gap: 6 },
+  categoryCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.cardDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
+  categoryCircleActive: { borderColor: colors.gold },
+  categoryIcon: { fontSize: 26 },
   categoryLabel: {
+    fontSize: typography.fontSize.xs,
     color: colors.textPrimary,
+    textAlign: 'center',
+    maxWidth: 64,
+  },
+
+  catalogHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  clearFilter: {
+    color: colors.gold,
     fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.bold,
+    fontWeight: typography.fontWeight.medium,
   },
 
   productsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: CARD_GAP },

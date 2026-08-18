@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'; // gregado useState
-import { NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer, Theme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,6 +12,18 @@ import ErrorBoundary from '@app/components/ErrorBoundary';
 import { useAuthStore } from '@store/authStore';
 import { colors } from '@app/theme/colors';
 import SplashScreen from '@app/screens/SplashScreen'; // nuevo import
+
+const navTheme: Theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: colors.background,
+    card: colors.background,
+    text: colors.textPrimary,
+    border: colors.border,
+    primary: colors.primary,
+  },
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,7 +52,7 @@ export default function App() {
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
-            <NavigationContainer>
+            <NavigationContainer theme={navTheme}>
               <StatusBar style="light" backgroundColor={colors.background} />
               <RootNavigator />
               <ToastContainer />

@@ -12,10 +12,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
-import SearchModal from '../components/SearchModal';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import ArtistCircle from '@modules/tattoo/components/ArtistCircle';
@@ -24,6 +22,8 @@ import BarberCircle from '@modules/barber/components/BarberCircle';
 import { BARBERS, Barber } from '@modules/barber/data/barbers';
 import PiercerCircle from '@modules/piercing/components/PiercerCircle';
 import { PIERCERS, Piercer } from '@modules/piercing/data/piercers';
+import MusicArtistCircle from '@modules/music/components/ArtistCircle';
+import { ARTISTS as MUSIC_ARTISTS, Artist as MusicArtist } from '@modules/music/data/artists';
 
 type HomeNavProp = StackNavigationProp<AppStackParamList>;
 
@@ -91,8 +91,6 @@ const PANEL_HEIGHT = 210;
 export default function HomeScreen() {
   const navigation = useNavigation<HomeNavProp>();
 
-  const [searchVisible, setSearchVisible] = useState(false);
-
   const [tattooExpanded, setTattooExpanded] = useState(false);
   const [tattooAnim] = useState(() => new Animated.Value(0));
 
@@ -101,6 +99,9 @@ export default function HomeScreen() {
 
   const [piercingExpanded, setPiercingExpanded] = useState(false);
   const [piercingAnim] = useState(() => new Animated.Value(0));
+
+  const [musicExpanded, setMusicExpanded] = useState(false);
+  const [musicAnim] = useState(() => new Animated.Value(0));
 
   useFocusEffect(
     useCallback(() => {
@@ -111,8 +112,10 @@ export default function HomeScreen() {
         barberAnim.setValue(0);
         setPiercingExpanded(false);
         piercingAnim.setValue(0);
+        setMusicExpanded(false);
+        musicAnim.setValue(0);
       };
-    }, [tattooAnim, barberAnim, piercingAnim]),
+    }, [tattooAnim, barberAnim, piercingAnim, musicAnim]),
   );
 
   const toggleExpand = useCallback(
@@ -154,6 +157,16 @@ export default function HomeScreen() {
     [navigation],
   );
 
+  const handleMusicArtistPress = useCallback(
+    (artist: MusicArtist) => {
+      navigation.navigate(
+        'Music' as never,
+        { screen: 'MusicDetail', params: { id: artist.id } } as never,
+      );
+    },
+    [navigation],
+  );
+
   const handleModulePress = useCallback(
     (item: (typeof MODULES)[number]) => {
       if (item.id === 'tattoo') {
@@ -162,6 +175,8 @@ export default function HomeScreen() {
         toggleExpand(barberExpanded, setBarberExpanded, barberAnim);
       } else if (item.id === 'piercing') {
         toggleExpand(piercingExpanded, setPiercingExpanded, piercingAnim);
+      } else if (item.id === 'music') {
+        toggleExpand(musicExpanded, setMusicExpanded, musicAnim);
       } else {
         navigation.navigate(item.screen as never);
       }
@@ -170,9 +185,11 @@ export default function HomeScreen() {
       tattooExpanded,
       barberExpanded,
       piercingExpanded,
+      musicExpanded,
       tattooAnim,
       barberAnim,
       piercingAnim,
+      musicAnim,
       toggleExpand,
       navigation,
     ],
@@ -182,34 +199,35 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.logoText}>HR</Text>
-        <TouchableOpacity style={styles.searchBtn} onPress={() => setSearchVisible(true)}>
-          <Ionicons name="search-outline" size={22} color={colors.textSecondary} />
+        <TouchableOpacity
+          style={styles.searchBtn}
+          onPress={() => navigation.navigate('Search' as never)}
+        >
+          <Text style={styles.searchIcon}>🔍</Text>
         </TouchableOpacity>
       </View>
 
-      <SearchModal visible={searchVisible} onClose={() => setSearchVisible(false)} />
+      <ImageBackground
+        source={require('../../../assets/images/home/promo-bg.webp')}
+        style={styles.promoBanner}
+        resizeMode="cover"
+      >
+        <LinearGradient
+          colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.promoOverlay}
+        >
+          <View style={styles.promoContent}>
+            <Text style={styles.promoTitle}>¡Promociones del día!</Text>
+          </View>
+          <TouchableOpacity style={styles.promoButton}>
+            <Text style={styles.promoButtonText}>VER OFERTAS</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </ImageBackground>
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-        <ImageBackground
-          source={require('../../../assets/images/home/promo-bg.webp')}
-          style={styles.promoBanner}
-          resizeMode="cover"
-        >
-          <LinearGradient
-            colors={['rgba(0,0,0,0.5)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.promoOverlay}
-          >
-            <View style={styles.promoContent}>
-              <Text style={styles.promoTitle}>¡Promociones del día!</Text>
-            </View>
-            <TouchableOpacity style={styles.promoButton}>
-              <Text style={styles.promoButtonText}>VER OFERTAS</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </ImageBackground>
-
         <View style={styles.moduleList}>
           {MODULES.map(item => (
             <View key={item.id}>
@@ -278,6 +296,21 @@ export default function HomeScreen() {
                   </View>
                 </Animated.View>
               )}
+
+              {/* Panel Música */}
+              {item.id === 'music' && (
+                <Animated.View style={[styles.artistsPanel, { height: musicAnim }]}>
+                  <View style={styles.artistsRow}>
+                    {MUSIC_ARTISTS.map(artist => (
+                      <MusicArtistCircle
+                        key={artist.id}
+                        artist={artist}
+                        onPress={handleMusicArtistPress}
+                      />
+                    ))}
+                  </View>
+                </Animated.View>
+              )}
             </View>
           ))}
         </View>
@@ -303,14 +336,8 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
     letterSpacing: 3,
   },
-  searchBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  searchBtn: { padding: spacing.xs },
+  searchIcon: { fontSize: 22 },
   scroll: { flex: 1 },
   promoBanner: {
     marginHorizontal: spacing.md,
@@ -320,7 +347,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.accent,
     overflow: 'hidden',
-    height: 120,
+    height: 100,
   },
   promoOverlay: {
     flex: 1,
@@ -348,7 +375,12 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     letterSpacing: 2,
   },
-  moduleList: { paddingHorizontal: spacing.md, paddingBottom: 160, gap: spacing.sm },
+  moduleList: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: 160,
+    gap: spacing.sm,
+  },
   moduleCard: {
     borderRadius: borderRadius.lg,
     backgroundColor: colors.cardDark,

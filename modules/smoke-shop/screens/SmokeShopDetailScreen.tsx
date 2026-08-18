@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SmokeShopStackParamList } from '@app/navigation/types';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
@@ -47,7 +47,7 @@ export default function SmokeShopDetailScreen() {
           <SafeAreaView edges={['top']} style={StyleSheet.absoluteFill} pointerEvents="box-none">
             <View style={styles.heroNav}>
               <TouchableOpacity style={styles.heroNavBtn} onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={20} color="#000000" />
+                <MaterialCommunityIcons name="arrow-left" size={20} color={colors.white} />
               </TouchableOpacity>
             </View>
           </SafeAreaView>
