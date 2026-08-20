@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import ImageLightbox from '@modules/barber/components/ImageLightbox';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { MusicStackParamList, AppStackParamList } from '@app/navigation/types';
+import { MusicStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import { ARTISTS, Review } from '../data/artists';
 
 type NavProp = StackNavigationProp<MusicStackParamList>;
-type AppNavProp = StackNavigationProp<AppStackParamList>;
 type RouteType = RouteProp<MusicStackParamList, 'MusicDetail'>;
 
 function StarRow({ rating }: { rating: number }) {
@@ -45,34 +44,12 @@ function ReviewCard({ review }: { review: Review }) {
 
 export default function MusicDetailScreen() {
   const navigation = useNavigation<NavProp>();
-  const appNavigation = useNavigation<AppNavProp>();
   const { params } = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
-  const [saved, setSaved] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const artist = ARTISTS.find(a => a.id === params.id);
   if (!artist) return null;
-
-  function openWhatsApp() {
-    const msg = `Hola ${artist!.name}, me interesa saber más sobre tus eventos.`;
-    Linking.openURL(`whatsapp://send?phone=${artist!.whatsapp}&text=${encodeURIComponent(msg)}`);
-  }
-
-  function handleBook() {
-    appNavigation.navigate('Booking', {
-      module: 'music',
-      professional: {
-        id: artist!.id,
-        name: artist!.name,
-        specialty: artist!.specialty,
-        image: artist!.image,
-        heroImage: artist!.heroImage,
-        whatsapp: artist!.whatsapp,
-      },
-      services: [],
-    });
-  }
 
   return (
     <View style={styles.container}>
@@ -113,22 +90,6 @@ export default function MusicDetailScreen() {
             <Text style={styles.availText}>
               {artist.availableToday ? 'Disponible hoy' : 'No disponible hoy'}
             </Text>
-          </View>
-
-          {/* Botones de acción */}
-          <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.actionBtn} onPress={handleBook}>
-              <Text style={styles.actionBtnText}>📅 Agendar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={openWhatsApp}>
-              <Text style={styles.actionBtnText}>💬 Mensaje</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionBtn, saved && styles.actionBtnSaved]}
-              onPress={() => setSaved(s => !s)}
-            >
-              <Text style={styles.actionBtnText}>{saved ? '♥' : '♡'} Guardar</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -189,9 +150,9 @@ export default function MusicDetailScreen() {
 
       {/* CTA fijo abajo */}
       <View style={[styles.ctaBar, { paddingBottom: insets.bottom + spacing.sm }]}>
-        <TouchableOpacity style={styles.ctaButton} onPress={handleBook}>
-          <Text style={styles.ctaText}>AGENDAR CON {artist.name.toUpperCase()}</Text>
-        </TouchableOpacity>
+        <View style={styles.ctaButton}>
+          <Text style={styles.ctaText}>ESCUCHAR MÚSICA DE {artist.name.toUpperCase()}</Text>
+        </View>
       </View>
     </View>
   );
@@ -242,30 +203,6 @@ const styles = StyleSheet.create({
   bullet: { color: colors.textMuted },
   availDot: { width: 8, height: 8, borderRadius: 4 },
   availText: { color: colors.textSecondary, fontSize: typography.fontSize.sm, marginLeft: 4 },
-
-  // Botones
-  actionRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: spacing.xs,
-  },
-  actionBtn: {
-    borderWidth: 1,
-    borderColor: colors.gold,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  actionBtnSaved: {
-    backgroundColor: colors.gold,
-  },
-  actionBtnText: {
-    color: colors.gold,
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-  },
 
   // Secciones
   section: {

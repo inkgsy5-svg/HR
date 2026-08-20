@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -90,6 +90,8 @@ const PANEL_HEIGHT = 210;
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeNavProp>();
+  const scrollRef = useRef<ScrollView>(null);
+  const moduleY = useRef<Record<string, number>>({});
 
   const [tattooExpanded, setTattooExpanded] = useState(false);
   const [tattooAnim] = useState(() => new Animated.Value(0));
@@ -114,15 +116,25 @@ export default function HomeScreen() {
         piercingAnim.setValue(0);
         setMusicExpanded(false);
         musicAnim.setValue(0);
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
       };
     }, [tattooAnim, barberAnim, piercingAnim, musicAnim]),
   );
 
   const toggleExpand = useCallback(
-    (expanded: boolean, setExpanded: (v: boolean) => void, anim: Animated.Value) => {
+    (id: string, expanded: boolean, setExpanded: (v: boolean) => void, anim: Animated.Value) => {
       const toValue = expanded ? 0 : PANEL_HEIGHT;
       setExpanded(!expanded);
       Animated.timing(anim, { toValue, duration: 280, useNativeDriver: false }).start();
+
+      requestAnimationFrame(() => {
+        if (!expanded) {
+          const y = moduleY.current[id] ?? 0;
+          scrollRef.current?.scrollTo({ y: Math.max(y - 12, 0), animated: true });
+        } else {
+          scrollRef.current?.scrollTo({ y: 0, animated: true });
+        }
+      });
     },
     [],
   );
@@ -170,13 +182,13 @@ export default function HomeScreen() {
   const handleModulePress = useCallback(
     (item: (typeof MODULES)[number]) => {
       if (item.id === 'tattoo') {
-        toggleExpand(tattooExpanded, setTattooExpanded, tattooAnim);
+        toggleExpand(item.id, tattooExpanded, setTattooExpanded, tattooAnim);
       } else if (item.id === 'barber') {
-        toggleExpand(barberExpanded, setBarberExpanded, barberAnim);
+        toggleExpand(item.id, barberExpanded, setBarberExpanded, barberAnim);
       } else if (item.id === 'piercing') {
-        toggleExpand(piercingExpanded, setPiercingExpanded, piercingAnim);
+        toggleExpand(item.id, piercingExpanded, setPiercingExpanded, piercingAnim);
       } else if (item.id === 'music') {
-        toggleExpand(musicExpanded, setMusicExpanded, musicAnim);
+        toggleExpand(item.id, musicExpanded, setMusicExpanded, musicAnim);
       } else {
         navigation.navigate(item.screen as never);
       }
@@ -227,10 +239,15 @@ export default function HomeScreen() {
         </LinearGradient>
       </ImageBackground>
 
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} style={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.moduleList}>
           {MODULES.map(item => (
-            <View key={item.id}>
+            <View
+              key={item.id}
+              onLayout={e => {
+                moduleY.current[item.id] = e.nativeEvent.layout.y;
+              }}
+            >
               <TouchableOpacity
                 activeOpacity={0.85}
                 style={styles.moduleCard}
