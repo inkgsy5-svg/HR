@@ -3,6 +3,7 @@
     "name": "Haciéndolo Real",
     "slug": "hr-app",
     "version": "1.0.0",
+    "scheme": "hracapp",
     "orientation": "portrait",
     "icon": "./assets/1-Home-HR.jpeg",
     "userInterfaceStyle": "dark",
@@ -26,10 +27,15 @@
     },
     "extra": {
       "apiUrl": "http://localhost:3000",
+      "googleAuth": {
+        "iosClientId": "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+        "androidClientId": "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+        "webClientId": "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
+      },
       "eas": {
         "projectId": "YOUR_EAS_PROJECT_ID"
       }
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": ["expo-secure-store", "expo-web-browser", "expo-apple-authentication"]
   }
 }

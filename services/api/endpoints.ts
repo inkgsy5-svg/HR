@@ -1,11 +1,13 @@
 export const ENDPOINTS = {
   // Auth
+  // Auth: el proveedor real va a ser AWS Cognito (User Pool + Google como
+  // Federated Identity Provider, ver docs/06-aws-setup.md § 5). Cognito emite
+  // sus propios tokens directo al cliente (Hosted UI / Amplify Auth), así que
+  // esta API no necesita endpoints propios de login/registro — solo valida
+  // el JWT de Cognito en cada request. Se deja `me` por si se necesita un
+  // endpoint propio de perfil extendido más adelante.
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    logout: '/auth/logout',
     me: '/auth/me',
-    refreshToken: '/auth/refresh',
   },
 
   // Search
