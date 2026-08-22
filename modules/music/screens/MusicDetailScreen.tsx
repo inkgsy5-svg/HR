@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import ImageLightbox from '@modules/barber/components/ImageLightbox';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -45,7 +45,6 @@ function ReviewCard({ review }: { review: Review }) {
 export default function MusicDetailScreen() {
   const navigation = useNavigation<NavProp>();
   const { params } = useRoute<RouteType>();
-  const insets = useSafeAreaInsets();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const artist = ARTISTS.find(a => a.id === params.id);
@@ -55,7 +54,7 @@ export default function MusicDetailScreen() {
     <View style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: spacing.xxl }}
       >
         {/* Hero Image */}
         <View>
@@ -69,28 +68,10 @@ export default function MusicDetailScreen() {
           </SafeAreaView>
         </View>
 
-        {/* Nombre y estrellas */}
+        {/* Nombre */}
         <View style={styles.profileSection}>
           <Text style={styles.name}>{artist.name}</Text>
           <Text style={styles.specialty}>{artist.specialty}</Text>
-
-          <View style={styles.ratingRow}>
-            <StarRow rating={artist.rating} />
-            <Text style={styles.ratingText}>
-              {' '}
-              {artist.rating} ({artist.reviewCount})
-            </Text>
-            <Text style={styles.bullet}> • </Text>
-            <View
-              style={[
-                styles.availDot,
-                { backgroundColor: artist.availableToday ? colors.success : colors.error },
-              ]}
-            />
-            <Text style={styles.availText}>
-              {artist.availableToday ? 'Disponible hoy' : 'No disponible hoy'}
-            </Text>
-          </View>
         </View>
 
         {/* Géneros y galería */}
@@ -127,8 +108,28 @@ export default function MusicDetailScreen() {
         {/* Información */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Información</Text>
+          {!!artist.bio && <Text style={styles.bio}>{artist.bio}</Text>}
           <Text style={styles.infoItem}>📍 {artist.location}</Text>
         </View>
+
+        {/* Videos */}
+        {artist.videos.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Videos</Text>
+            {artist.videos.map(video => (
+              <TouchableOpacity
+                key={video.url}
+                style={styles.videoRow}
+                activeOpacity={0.7}
+                onPress={() => Linking.openURL(video.url)}
+              >
+                <MaterialCommunityIcons name="youtube" size={22} color={colors.error} />
+                <Text style={styles.videoTitle}>{video.title}</Text>
+                <MaterialCommunityIcons name="open-in-new" size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* Reseñas */}
         {artist.reviews.length > 0 && (
@@ -147,13 +148,6 @@ export default function MusicDetailScreen() {
         initialIndex={lightboxIndex ?? 0}
         onClose={() => setLightboxIndex(null)}
       />
-
-      {/* CTA fijo abajo */}
-      <View style={[styles.ctaBar, { paddingBottom: insets.bottom + spacing.sm }]}>
-        <View style={styles.ctaButton}>
-          <Text style={styles.ctaText}>ESCUCHAR MÚSICA DE {artist.name.toUpperCase()}</Text>
-        </View>
-      </View>
     </View>
   );
 }
@@ -192,17 +186,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.fontSize.base,
   },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
   stars: { color: colors.gold, fontSize: 14 },
-  ratingText: { color: colors.textPrimary, fontSize: typography.fontSize.sm },
-  bullet: { color: colors.textMuted },
-  availDot: { width: 8, height: 8, borderRadius: 4 },
-  availText: { color: colors.textSecondary, fontSize: typography.fontSize.sm, marginLeft: 4 },
 
   // Secciones
   section: {
@@ -242,10 +226,31 @@ const styles = StyleSheet.create({
   },
 
   // Info
+  bio: {
+    color: colors.textSecondary,
+    fontSize: typography.fontSize.sm,
+    lineHeight: 20,
+    marginBottom: spacing.sm,
+  },
   infoItem: {
     color: colors.textSecondary,
     fontSize: typography.fontSize.sm,
     marginBottom: spacing.xs,
+  },
+
+  // Videos
+  videoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  videoTitle: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: typography.fontSize.base,
   },
 
   // Reseñas
@@ -288,30 +293,5 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.fontSize.sm,
     marginTop: 2,
-  },
-
-  // CTA
-  ctaBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  ctaButton: {
-    backgroundColor: colors.gold,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  ctaText: {
-    color: colors.background,
-    fontWeight: typography.fontWeight.bold,
-    fontSize: typography.fontSize.md,
-    letterSpacing: 1.5,
   },
 });
