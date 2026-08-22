@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
+  View,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +20,10 @@ import { spacing } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import { useAuthStore } from '@store/authStore';
 import { useUIStore } from '@store/uiStore';
+import { useGoogleAuth } from '@modules/auth/hooks/useGoogleAuth';
+import GoogleButton from '@modules/auth/components/GoogleButton';
+import { useAppleAuth } from '@modules/auth/hooks/useAppleAuth';
+import AppleButton from '@modules/auth/components/AppleButton';
 
 type LoginNavProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -31,6 +36,20 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const {
+    profile: googleProfile,
+    error: googleError,
+    isLoading: isGoogleLoading,
+    signInWithGoogle,
+  } = useGoogleAuth();
+
+  const {
+    isAvailable: isAppleAvailable,
+    profile: appleProfile,
+    error: appleError,
+    signInWithApple,
+  } = useAppleAuth();
+
   const handleLogin = async () => {
     if (!email || !password) {
       showToast('Por favor completa todos los campos', 'warning');
@@ -38,7 +57,8 @@ export default function LoginScreen() {
     }
     setIsLoading(true);
     try {
-      // TODO: Replace with real auth service call
+      // TODO(AWS): reemplazar por Cognito (InitiateAuth / Amplify Auth.signIn)
+      // ver docs/06-aws-setup.md § 5 — mismo User Pool que el login con Google.
       // const { user, token } = await authService.login({ email, password });
       // await setUser(user, token);
 
@@ -52,6 +72,49 @@ export default function LoginScreen() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!googleProfile) return;
+    // TODO(AWS): reemplazar por el login federado de Cognito (Google como
+    // Identity Provider, ver docs/06-aws-setup.md § 5.4) y usar el token
+    // que devuelva Cognito en vez del perfil de Google crudo. Migrar junto
+    // con handleLogin (mismo User Pool para ambos, no por separado).
+    setUser(
+      { id: googleProfile.id, email: googleProfile.email, name: googleProfile.name },
+      'mock-google-token',
+    ).then(() => {
+      showToast('Sesión iniciada con Google', 'success');
+      navigation.getParent()?.goBack();
+    });
+  }, [googleProfile, navigation, setUser, showToast]);
+
+  useEffect(() => {
+    if (googleError) showToast(googleError, 'error');
+  }, [googleError, showToast]);
+
+  useEffect(() => {
+    if (!appleProfile) return;
+    // TODO(AWS): reemplazar por el login federado de Cognito (Apple como
+    // Identity Provider, ver docs/06-aws-setup.md § 5.5) y usar el token
+    // que devuelva Cognito en vez del identityToken crudo de Apple. Migrar
+    // junto con Google y handleLogin (mismo User Pool para los tres, no
+    // por separado).
+    setUser(
+      {
+        id: appleProfile.id,
+        email: appleProfile.email ?? '',
+        name: appleProfile.name ?? 'Usuario de Apple',
+      },
+      'mock-apple-token',
+    ).then(() => {
+      showToast('Sesión iniciada con Apple', 'success');
+      navigation.getParent()?.goBack();
+    });
+  }, [appleProfile, navigation, setUser, showToast]);
+
+  useEffect(() => {
+    if (appleError) showToast(appleError, 'error');
+  }, [appleError, showToast]);
 
   return (
     <ImageBackground
@@ -105,6 +168,15 @@ export default function LoginScreen() {
               textStyle={{ color: colors.textOnAccent }}
             />
 
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>o</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <GoogleButton onPress={() => signInWithGoogle()} isLoading={isGoogleLoading} />
+            {isAppleAvailable && <AppleButton onPress={signInWithApple} />}
+
             <Button
               title="¿No tienes cuenta? Regístrate"
               variant="ghost"
@@ -147,4 +219,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   loginBtn: { marginTop: spacing.md, marginBottom: spacing.sm },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.md,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.2)' },
+  dividerText: {
+    color: colors.textSecondary,
+    marginHorizontal: spacing.sm,
+    fontSize: typography.fontSize.sm,
+  },
 });

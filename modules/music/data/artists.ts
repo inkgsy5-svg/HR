@@ -6,6 +6,11 @@ export type Review = {
   comment: string;
 };
 
+export type Video = {
+  title: string;
+  url: string;
+};
+
 export type Artist = {
   id: string;
   name: string;
@@ -18,8 +23,10 @@ export type Artist = {
   styles: string[];
   gallery: number[];
   experience: string;
+  bio: string;
   location: string;
   whatsapp: string;
+  videos: Video[];
   reviews: Review[];
 };
 
@@ -36,8 +43,14 @@ export const ARTISTS: Artist[] = [
     styles: [],
     gallery: [],
     experience: '',
+    bio: 'Pily Pacheco es DJ residente de HR Music. Le apasiona el rap — de los clásicos a las propuestas más nuevas del género — y esa es la base de sus sets, mezclados con energía en vivo para que la pista no pare.',
     location: 'HR Music',
     whatsapp: '521234567890',
+    videos: [
+      { title: 'Solo algunos', url: 'https://www.youtube.com/watch?v=_-iydVdk6Vc' },
+      { title: 'Ya no llames', url: 'https://www.youtube.com/watch?v=lAZhQ-w_KYo' },
+      { title: 'Trance', url: 'https://www.youtube.com/watch?v=VpZMj2AgpGI' },
+    ],
     reviews: [],
   },
 ];

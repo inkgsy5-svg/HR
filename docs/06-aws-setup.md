@@ -292,6 +292,127 @@ AWS_USER_POOL_ID=us-east-1_AbCdEfGhI
 AWS_USER_POOL_CLIENT_ID=1abc2def3ghi4jkl5mno6pqr7s
 ```
 
+### 5.3 Activar el dominio de Cognito (Hosted UI)
+
+Necesario para que el login federado (Google) tenga a dónde redirigir. Sin
+esto, "Google como Identity Provider" (5.4) no se puede probar.
+
+1. En el User Pool → **App integration** → **Domain**
+2. **Use a Cognito domain**
+3. Elegir un prefijo único, ej: `hr-app-dev` → queda
+   `hr-app-dev.auth.us-east-1.amazoncognito.com`
+4. Clic en **Create**
+
+Este dominio va en `.env.development` como `AWS_COGNITO_DOMAIN`.
+
+### 5.4 Agregar Google como Identity Provider
+
+Esto es lo que permite el botón "Continuar con Google" de la app. Cognito
+hace de intermediario: recibe el token de Google, lo valida, y crea/vincula
+el usuario en este mismo User Pool — la API en EC2 nunca necesita saber
+nada de Google, solo valida el JWT de Cognito de siempre.
+
+**En Google Cloud Console** (una sola vez, antes de tocar Cognito):
+
+1. Crear un **OAuth 2.0 Client ID** de tipo **Web application**
+   (Cognito necesita el tipo "Web", no el de iOS/Android que ya se usan
+   en `app.json > extra.googleAuth`)
+2. En **Authorized redirect URIs** agregar:
+   `https://<AWS_COGNITO_DOMAIN>/oauth2/idpresponse`
+   (ej: `https://hr-app-dev.auth.us-east-1.amazoncognito.com/oauth2/idpresponse`)
+3. Guardar el **Client ID** y **Client secret** — van en Cognito, no en la app.
+
+**En Cognito:**
+
+1. User Pool → **Sign-in experience** → **Federated identity provider sign-in**
+   → **Add identity provider** → **Google**
+2. Pegar el **Client ID** y **Client secret** de Google
+3. **Authorized scopes:** `profile email openid`
+4. **Attribute mapping:** mapear `email` → `email` y `name` → `name`
+5. Guardar
+
+**En el App client del User Pool** (`hr-app-mobile-client`):
+
+1. **Hosted UI** → **Edit**
+2. **Identity providers:** marcar también **Google** (además de Cognito user pool)
+3. **Allowed callback URLs:** agregar el scheme de la app: `hracapp://`
+4. **Allowed sign-out URLs:** `hracapp://`
+5. **OAuth grant types:** `Authorization code grant`
+6. **OpenID Connect scopes:** `email`, `openid`, `profile`
+7. Guardar
+
+**En el cliente (Expo):** en vez de que `useGoogleAuth` hable directo con
+Google, la app arma la URL de autorización contra el Hosted UI de Cognito
+(`https://<AWS_COGNITO_DOMAIN>/oauth2/authorize?identity_provider=Google&...`)
+usando `expo-auth-session`, o se usa `aws-amplify`'s `Auth.federatedSignIn()`.
+Cognito devuelve sus propios `id_token`/`access_token`/`refresh_token` — los
+mismos que ya usa el login por email/password — así que el resto de la app
+(guardado en `SecureStore`, header `Authorization` del `apiClient`, etc.) no
+cambia.
+
+### 5.5 Agregar Apple como Identity Provider ("Sign in with Apple")
+
+Habilita el botón "Continuar con Apple" (obligatorio en iOS si ya se ofrece
+Google — regla 4.8 de App Store Review). A diferencia de Google, Apple exige
+cuenta de pago y unos pasos extra:
+
+**Requisito previo:** cuenta **Apple Developer Program activa** ($99 USD/año)
+— sin esto no se puede configurar Sign in with Apple en absoluto.
+
+**En Apple Developer (developer.apple.com/account):**
+
+1. **Certificates, IDs & Profiles → Identifiers → App IDs**
+   → confirmar que `com.haciendoloreal.hrapp` tiene marcada la capability
+   **Sign In with Apple** (Expo la agrega sola al hacer un build gracias al
+   plugin `expo-apple-authentication`, pero conviene revisarlo aquí)
+2. **Identifiers → + → Services IDs** → crear uno nuevo, ej:
+   `com.haciendoloreal.hrapp.signin`
+   (Cognito necesita este Services ID como "client ID" — es distinto del
+   bundle ID de la app)
+3. En ese Services ID → **Sign In with Apple → Configure**:
+   - **Primary App ID:** `com.haciendoloreal.hrapp`
+   - **Domains and Subdomains:** `<AWS_COGNITO_DOMAIN>` (ej: `hr-app-dev.auth.us-east-1.amazoncognito.com`)
+   - **Return URLs:** `https://<AWS_COGNITO_DOMAIN>/oauth2/idpresponse`
+4. **Keys → + →** marcar **Sign In with Apple** → **Configure** → elegir el
+   Primary App ID → **Continue → Register**
+5. **Descargar el archivo `.p8`** — solo se puede descargar una vez, guardarlo
+   seguro. Anotar el **Key ID** (10 caracteres) y el **Team ID** (arriba a la
+   derecha de la cuenta de desarrollador)
+
+**En Cognito:**
+
+1. User Pool → **Sign-in experience** → **Federated identity provider sign-in**
+   → **Add identity provider** → **Sign in with Apple**
+2. **Client ID:** el Services ID creado en el paso 2 (`com.haciendoloreal.hrapp.signin`)
+3. **Team ID**, **Key ID** y subir el archivo **`.p8`** del paso 4
+4. **Authorized scopes:** `email name`
+5. **Attribute mapping:** mapear `email` → `email` y `name` → `name`
+6. Guardar
+
+**En el App client del User Pool:** igual que con Google (5.4) — marcar
+también **Sign in with Apple** en Identity providers del Hosted UI; las
+callback/sign-out URLs (`hracapp://`) ya quedan compartidas entre proveedores.
+
+**En el cliente (Expo):** hoy `useAppleAuth` usa `expo-apple-authentication`
+directo contra Apple (nativo, sin pasar por un navegador). Al migrar a
+Cognito, el flujo cambia a autorización vía Hosted UI con
+`identity_provider=SignInWithApple`, igual que Google — Cognito unifica los
+tres proveedores (email/password, Google, Apple) bajo el mismo `id_token`.
+
+> **Nota:** Apple solo entrega el email y nombre reales la primera vez que
+> el usuario autoriza la app — en logins siguientes los omite. Esto no
+> cambia con Cognito: hay que guardar esos datos (en la base de datos del
+> backend) la primera vez que llegan, porque no se van a repetir.
+
+---
+
+> Ver conversación de implementación: cuando el User Pool + dominio + Google
+> IdP + Apple IdP ya estén creados, actualizar `useGoogleAuth.ts`,
+> `useAppleAuth.ts` y el `handleLogin`/`handleRegister` mockeados de
+> `LoginScreen.tsx` / `RegisterScreen.tsx` para llamar a Cognito en vez de
+> al mock — los tres a la vez, no por separado, para no dejar la app con
+> varios sistemas de sesión distintos.
+
 ---
 
 ## 6. RDS — Base de datos PostgreSQL
@@ -480,6 +601,19 @@ AWS_SECRET_ACCESS_KEY=<secret_key_del_usuario_hr-app-backend>
 # Cognito
 AWS_USER_POOL_ID=us-east-1_XXXXXXXXX
 AWS_USER_POOL_CLIENT_ID=XXXXXXXXXXXXXXXXXXXXXXXXXX
+AWS_COGNITO_DOMAIN=hr-app-dev.auth.us-east-1.amazoncognito.com
+
+# Google (Identity Provider dentro de Cognito, ver 5.4 — NO son los
+# client IDs de app.json > extra.googleAuth, esos son otros)
+GOOGLE_OAUTH_CLIENT_ID=XXXXXXXXXXXX.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=XXXXXXXXXXXXXXXXXXXXXXXX
+
+# Apple (Identity Provider dentro de Cognito, ver 5.5 — requiere cuenta
+# Apple Developer Program activa)
+APPLE_SERVICES_ID=com.haciendoloreal.hrapp.signin
+APPLE_TEAM_ID=XXXXXXXXXX
+APPLE_KEY_ID=XXXXXXXXXX
+# El archivo .p8 no va en variables de entorno — se sube directo en Cognito
 
 # S3
 AWS_S3_BUCKET=hr-app-gallery-dev
