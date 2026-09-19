@@ -8,6 +8,7 @@ import { AppStackParamList } from '@app/navigation/types';
 import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
+import { useBookingHistoryStore } from '@store/bookingHistoryStore';
 
 type Nav = StackNavigationProp<AppStackParamList, 'BookingConfirm'>;
 type Route = RouteProp<AppStackParamList, 'BookingConfirm'>;
@@ -15,10 +16,27 @@ type Route = RouteProp<AppStackParamList, 'BookingConfirm'>;
 export default function BookingConfirmScreen() {
   const navigation = useNavigation<Nav>();
   const { params } = useRoute<Route>();
+  const addBooking = useBookingHistoryStore(state => state.addBooking);
 
   const [scaleAnim] = useState(() => new Animated.Value(0));
   const [fadeAnim] = useState(() => new Animated.Value(0));
   const [slideAnim] = useState(() => new Animated.Value(40));
+
+  // Se llega aquí solo con sesión iniciada (TattooDetail/BarberDetail/
+  // PiercingDetail pasan por useRequireAuth antes de abrir Booking). Esto
+  // es el mock local de "guardar la cita"; cuando exista backend, aquí va
+  // el POST a ENDPOINTS.<módulo>.booking y el historial se lee de ahí.
+  useEffect(() => {
+    addBooking({
+      module: params.module,
+      professionalName: params.professionalName,
+      day: params.day,
+      slot: params.slot,
+      total: params.total,
+      services: params.services,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

@@ -36,6 +36,17 @@
         "projectId": "YOUR_EAS_PROJECT_ID"
       }
     },
-    "plugins": ["expo-secure-store", "expo-web-browser", "expo-apple-authentication"]
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-apple-authentication",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Usamos tus fotos para poner tu foto de perfil.",
+          "cameraPermission": "Usamos la cámara para tomar tu foto de perfil."
+        }
+      ]
+    ]
   }
 }

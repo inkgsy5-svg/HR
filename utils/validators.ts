@@ -1,3 +1,5 @@
+import { dobToISO } from './dateOfBirth';
+
 export const validators = {
   email: (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
   password: (value: string): boolean => value.length >= 8,
@@ -14,5 +16,11 @@ export function getEmailError(email: string): string | undefined {
 export function getPasswordError(password: string): string | undefined {
   if (!validators.required(password)) return 'La contraseña es requerida';
   if (!validators.password(password)) return 'Mínimo 8 caracteres';
+  return undefined;
+}
+
+export function getDateOfBirthError(value: string): string | undefined {
+  if (!validators.required(value)) return 'La fecha de nacimiento es requerida';
+  if (!dobToISO(value)) return 'Fecha inválida (DD/MM/AAAA)';
   return undefined;
 }

@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, ImageBackground, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  ImageBackground,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -7,10 +14,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AppStackParamList } from '@app/navigation/types';
 import Header from '@app/components/Header';
 import Button from '@app/components/Button';
+import AvatarPicker from '@app/components/AvatarPicker';
 import { colors } from '@app/theme/colors';
-import { spacing } from '@app/theme/spacing';
+import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import { useAuthStore } from '@store/authStore';
+import { useBookingHistoryStore, BookingHistoryItem } from '@store/bookingHistoryStore';
+import { findMockUser, saveMockUser } from '@modules/auth/mockUserDirectory';
 
 type NavProp = StackNavigationProp<AppStackParamList>;
 
@@ -18,13 +28,59 @@ type NavProp = StackNavigationProp<AppStackParamList>;
 // para que el botón no quede tapado por el menú inferior.
 const TAB_BAR_CLEARANCE = 62 + 12 + spacing.lg;
 
+const MODULE_ICON: Record<BookingHistoryItem['module'], string> = {
+  barber: '✂️',
+  tattoo: '🖊️',
+  piercing: '💎',
+  'smoke-shop': '💨',
+  music: '🎵',
+  resin: '🎨',
+};
+
+function formatBookingDay(key: string) {
+  const d = new Date(key + 'T12:00:00');
+  return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function BookingHistoryCard({ item }: { item: BookingHistoryItem }) {
+  return (
+    <View style={styles.historyCard}>
+      <Text style={styles.historyIcon}>{MODULE_ICON[item.module]}</Text>
+      <View style={styles.historyInfo}>
+        <Text style={styles.historyName}>{item.professionalName}</Text>
+        <Text style={styles.historyMeta}>
+          {formatBookingDay(item.day)} · {item.slot}
+        </Text>
+        {item.services.length > 0 && (
+          <Text style={styles.historyServices} numberOfLines={1}>
+            {item.services.join(' · ')}
+          </Text>
+        )}
+      </View>
+      {item.total > 0 && <Text style={styles.historyTotal}>${item.total}</Text>}
+    </View>
+  );
+}
+
 export default function ProfileScreen() {
   const navigation = useNavigation<NavProp>();
   const user = useAuthStore(state => state.user);
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const isLoading = useAuthStore(state => state.isLoading);
   const logout = useAuthStore(state => state.logout);
+  const updateAvatar = useAuthStore(state => state.updateAvatar);
+  const bookings = useBookingHistoryStore(state => state.items);
   const insets = useSafeAreaInsets();
+
+  async function handleAvatarChange(uri: string) {
+    await updateAvatar(uri);
+    // Mantiene el directorio local en sync para que la foto también
+    // aparezca si vuelve a iniciar sesión con email/contraseña.
+    if (user?.email) {
+      const known = await findMockUser(user.email);
+      await saveMockUser(user.email, user.id, user.name, known?.dateOfBirth, uri);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -81,17 +137,42 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['left', 'right']}>
       <Header title="Perfil" />
-      <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <AvatarPicker uri={user?.avatar} onChange={handleAvatarChange} size={96} />
         <Text style={styles.name}>{user?.name ?? 'Usuario'}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
-        {/* TODO: Implementar perfil completo */}
+
+        <View style={styles.historySection}>
+          <Text style={styles.historyTitle}>Historial</Text>
+          {bookings.length === 0 ? (
+            <View style={styles.historyEmpty}>
+              <Text style={styles.historyEmptyText}>
+                Aún no tienes nada en tu historial. Cuando agendes un tatuaje, piercing o corte, o
+                hagas una compra, aparecerá aquí.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.historyList}>
+              {bookings.map(item => (
+                <BookingHistoryCard key={item.id} item={item} />
+              ))}
+            </View>
+          )}
+        </View>
+
         <Button
           title="Cerrar sesión"
           variant="outline"
           onPress={logout}
-          style={{ ...styles.logoutBtn, marginBottom: insets.bottom + TAB_BAR_CLEARANCE }}
+          style={styles.logoutBtn}
+          textStyle={styles.logoutBtnText}
         />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -129,17 +210,63 @@ const styles = StyleSheet.create({
   guestOutlineBtnText: { color: colors.accent },
 
   // Estado autenticado
-  container: { flex: 1, padding: spacing.lg, alignItems: 'center', paddingTop: spacing.xl },
+  container: { padding: spacing.lg, alignItems: 'center', paddingTop: spacing.xl },
   name: {
     color: colors.textPrimary,
     fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.bold,
-    marginBottom: spacing.xs,
-  },
-  email: {
-    color: colors.textSecondary,
-    fontSize: typography.fontSize.base,
+    marginTop: spacing.md,
     marginBottom: spacing.xl,
   },
-  logoutBtn: { marginTop: 'auto', width: '100%' },
+
+  // Historial (citas y compras)
+  historySection: { width: '100%', marginBottom: spacing.xl },
+  historyTitle: {
+    color: colors.textPrimary,
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  historyEmpty: {
+    width: '100%',
+    backgroundColor: colors.cardDark,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    padding: spacing.md,
+  },
+  historyEmptyText: {
+    color: colors.textMuted,
+    fontSize: typography.fontSize.sm,
+    textAlign: 'center',
+  },
+  historyList: { width: '100%', gap: spacing.sm },
+  historyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.cardDark,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  historyIcon: { fontSize: 24, width: 32, textAlign: 'center' },
+  historyInfo: { flex: 1, gap: 2 },
+  historyName: {
+    color: colors.textPrimary,
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+  },
+  historyMeta: { color: colors.textSecondary, fontSize: typography.fontSize.xs },
+  historyServices: { color: colors.textMuted, fontSize: typography.fontSize.xs },
+  historyTotal: {
+    color: colors.accent,
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+  },
+
+  logoutBtn: { width: '100%', borderColor: colors.accent },
+  logoutBtnText: { color: colors.accent },
 });
