@@ -19,6 +19,7 @@ import { colors } from '@app/theme/colors';
 import { spacing, borderRadius } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import { ARTISTS, Review } from '../data/artists';
+import { useRequireAuth } from '@hooks/useRequireAuth';
 
 type NavProp = StackNavigationProp<TattooStackParamList>;
 type AppNavProp = StackNavigationProp<AppStackParamList>;
@@ -63,6 +64,7 @@ export default function TattooDetailScreen() {
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const requireAuth = useRequireAuth();
 
   const artist = ARTISTS.find(a => a.id === params.id);
   if (!artist) return null;
@@ -73,18 +75,22 @@ export default function TattooDetailScreen() {
   }
 
   function handleBook() {
-    appNavigation.navigate('Booking', {
-      module: 'tattoo',
-      professional: {
-        id: artist!.id,
-        name: artist!.name,
-        specialty: artist!.specialty,
-        image: artist!.image,
-        heroImage: artist!.heroImage,
-        whatsapp: artist!.whatsapp,
-      },
-      services: [],
-    });
+    // Agendar requiere sesión iniciada; si no hay, se pide login y se
+    // retoma esta misma acción automáticamente (ver useRequireAuth).
+    requireAuth(() =>
+      appNavigation.navigate('Booking', {
+        module: 'tattoo',
+        professional: {
+          id: artist!.id,
+          name: artist!.name,
+          specialty: artist!.specialty,
+          image: artist!.image,
+          heroImage: artist!.heroImage,
+          whatsapp: artist!.whatsapp,
+        },
+        services: [],
+      }),
+    );
   }
 
   return (

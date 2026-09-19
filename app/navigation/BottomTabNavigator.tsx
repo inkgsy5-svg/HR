@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BottomTabParamList } from './types';
 import { colors } from '@app/theme/colors';
 import { typography } from '@app/theme/typography';
+import { useAuthStore } from '@store/authStore';
 import HomeScreen from '@modules/home/screens/HomeScreen';
 import ProfileScreen from '@modules/profile/screens/ProfileScreen';
 import SearchScreen from '@modules/search/screens/SearchScreen';
@@ -20,25 +21,38 @@ const TABS = [
 
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const avatar = useAuthStore(s => s.user?.avatar);
 
   return (
     <View style={[styles.bar, { bottom: insets.bottom + 12 }]}>
       {TABS.map((tab, index) => {
         const focused = state.index === index;
+        const showAvatar = tab.name === 'Profile' && !!avatar;
 
         return (
           <TouchableOpacity
             key={tab.name}
-            style={[styles.tabItem, focused && styles.tabItemActive]}
+            style={[
+              styles.tabItem,
+              focused && (showAvatar ? styles.tabItemActiveAvatar : styles.tabItemActive),
+            ]}
             activeOpacity={0.8}
             onPress={() => navigation.navigate(tab.name)}
           >
-            <MaterialCommunityIcons
-              name={focused ? tab.iconActive : tab.iconInactive}
-              size={22}
-              color={focused ? colors.textOnAccent : colors.tabIconInactive}
-            />
-            {focused && <Text style={styles.activeLabel}>{tab.label}</Text>}
+            {showAvatar ? (
+              <Image
+                source={{ uri: avatar }}
+                style={[styles.avatarIcon, focused && styles.avatarIconActive]}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name={focused ? tab.iconActive : tab.iconInactive}
+                size={22}
+                color={focused ? colors.textOnAccent : colors.tabIconInactive}
+              />
+            )}
+            {/* Con foto de perfil, la pestaña activa solo muestra la foto (sin la etiqueta). */}
+            {focused && !showAvatar && <Text style={styles.activeLabel}>{tab.label}</Text>}
           </TouchableOpacity>
         );
       })}
@@ -92,9 +106,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gold,
     paddingHorizontal: 16,
   },
+  // Igual que tabItemActive pero sin el padding extra que le hacía lugar
+  // a la etiqueta "Perfil" — con foto solo queda el círculo.
+  tabItemActiveAvatar: {
+    backgroundColor: colors.gold,
+  },
   activeLabel: {
     color: colors.textOnAccent,
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.bold,
   },
+  avatarIcon: { width: 44, height: 44, borderRadius: 22 },
+  avatarIconActive: { borderWidth: 1.5, borderColor: colors.textOnAccent },
 });

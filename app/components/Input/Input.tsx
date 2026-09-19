@@ -17,9 +17,14 @@ interface InputProps extends TextInputProps {
   error?: string;
   hint?: string;
   rightIcon?: React.ReactNode;
+  onRightIconPress?: () => void;
   containerStyle?: ViewStyle;
   wrapperStyle?: ViewStyle;
   accentColor?: string;
+  /** Color del texto de la etiqueta (label). Útil sobre fondos con poco contraste. */
+  labelColor?: string;
+  /** Color del texto que escribe el usuario dentro del campo. */
+  textColor?: string;
 }
 
 export default function Input({
@@ -27,16 +32,19 @@ export default function Input({
   error,
   hint,
   rightIcon,
+  onRightIconPress,
   containerStyle,
   wrapperStyle,
   accentColor = colors.secondary,
+  labelColor,
+  textColor,
   ...rest
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, labelColor && { color: labelColor }]}>{label}</Text>}
       <View
         style={[
           styles.inputWrapper,
@@ -46,13 +54,22 @@ export default function Input({
         ]}
       >
         <TextInput
-          style={styles.input}
+          style={[styles.input, textColor && { color: textColor }]}
           placeholderTextColor={colors.textMuted}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           {...rest}
         />
-        {rightIcon && <TouchableOpacity style={styles.rightIcon}>{rightIcon}</TouchableOpacity>}
+        {rightIcon && (
+          <TouchableOpacity
+            style={styles.rightIcon}
+            onPress={onRightIconPress}
+            disabled={!onRightIconPress}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            {rightIcon}
+          </TouchableOpacity>
+        )}
       </View>
       {error && <Text style={styles.error}>{error}</Text>}
       {hint && !error && <Text style={styles.hint}>{hint}</Text>}

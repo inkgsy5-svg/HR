@@ -4,3 +4,4 @@ export { default as Input } from './Input';
 export { default as Header } from './Header';
 export { default as ToastContainer } from './Toast';
 export { default as ErrorBoundary } from './ErrorBoundary';
+export { default as AvatarPicker } from './AvatarPicker';

@@ -20,6 +20,7 @@ import { typography } from '@app/theme/typography';
 import { PIERCERS, PiercerReview } from '../data/piercers';
 import { PIERCING_SERVICES } from '../data/services';
 import ImageLightbox from '../components/ImageLightbox';
+import { useRequireAuth } from '@hooks/useRequireAuth';
 
 type NavProp = StackNavigationProp<PiercingStackParamList>;
 type AppNavProp = StackNavigationProp<AppStackParamList>;
@@ -65,6 +66,7 @@ export default function PiercingDetailScreen() {
   const [saved, setSaved] = useState(false);
   const [lightboxVisible, setLightboxVisible] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const requireAuth = useRequireAuth();
 
   const piercer = PIERCERS.find(p => p.id === params.id);
   if (!piercer) return null;
@@ -75,18 +77,22 @@ export default function PiercingDetailScreen() {
   }
 
   function handleBook() {
-    appNavigation.navigate('Booking', {
-      module: 'piercing',
-      professional: {
-        id: piercer!.id,
-        name: piercer!.name,
-        specialty: piercer!.specialty,
-        image: piercer!.image,
-        heroImage: piercer!.heroImage,
-        whatsapp: piercer!.whatsapp,
-      },
-      services: PIERCING_SERVICES,
-    });
+    // Agendar requiere sesión iniciada; si no hay, se pide login y se
+    // retoma esta misma acción automáticamente (ver useRequireAuth).
+    requireAuth(() =>
+      appNavigation.navigate('Booking', {
+        module: 'piercing',
+        professional: {
+          id: piercer!.id,
+          name: piercer!.name,
+          specialty: piercer!.specialty,
+          image: piercer!.image,
+          heroImage: piercer!.heroImage,
+          whatsapp: piercer!.whatsapp,
+        },
+        services: PIERCING_SERVICES,
+      }),
+    );
   }
 
   return (

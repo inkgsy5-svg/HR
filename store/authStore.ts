@@ -6,6 +6,9 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
+  // ISO 'YYYY-MM-DD'. Se pide al registrarse para poder mandar promos de
+  // cumpleaños más adelante (ver mockUserDirectory.ts).
+  dateOfBirth?: string;
 }
 
 interface AuthState {
@@ -15,6 +18,7 @@ interface AuthState {
   isLoading: boolean;
 
   setUser: (user: User, token: string) => Promise<void>;
+  updateAvatar: (avatar: string) => Promise<void>;
   logout: () => Promise<void>;
   restoreSession: () => Promise<void>;
 }
@@ -22,7 +26,7 @@ interface AuthState {
 const TOKEN_KEY = 'hr_auth_token';
 const USER_KEY = 'hr_user';
 
-export const useAuthStore = create<AuthState>(set => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -32,6 +36,14 @@ export const useAuthStore = create<AuthState>(set => ({
     await SecureStore.setItemAsync(TOKEN_KEY, token);
     await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
     set({ user, token, isAuthenticated: true });
+  },
+
+  updateAvatar: async avatar => {
+    const current = get().user;
+    if (!current) return;
+    const user = { ...current, avatar };
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    set({ user });
   },
 
   logout: async () => {

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AuthStackParamList } from '@app/navigation/types';
 import Button from '@app/components/Button';
 import Input from '@app/components/Input';
@@ -20,10 +21,12 @@ import { spacing } from '@app/theme/spacing';
 import { typography } from '@app/theme/typography';
 import { useAuthStore } from '@store/authStore';
 import { useUIStore } from '@store/uiStore';
+import { finishAuthFlow } from '@store/pendingActionStore';
 import { useGoogleAuth } from '@modules/auth/hooks/useGoogleAuth';
 import GoogleButton from '@modules/auth/components/GoogleButton';
 import { useAppleAuth } from '@modules/auth/hooks/useAppleAuth';
 import AppleButton from '@modules/auth/components/AppleButton';
+import { findMockUser, nameFromEmail } from '@modules/auth/mockUserDirectory';
 
 type LoginNavProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -34,6 +37,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -62,10 +66,23 @@ export default function LoginScreen() {
       // const { user, token } = await authService.login({ email, password });
       // await setUser(user, token);
 
-      // Mock for development
-      await setUser({ id: '1', email, name: 'Dev User' }, 'mock-token');
+      // Mock for development — usa el nombre real que se dio al registrarse
+      // (ver mockUserDirectory.ts); si el correo no está registrado en este
+      // dispositivo, deriva un nombre del correo en vez de uno fijo.
+      const known = await findMockUser(email);
+      const name = known?.name ?? nameFromEmail(email);
+      await setUser(
+        {
+          id: known?.id ?? '1',
+          email,
+          name,
+          dateOfBirth: known?.dateOfBirth,
+          avatar: known?.avatar,
+        },
+        'mock-token',
+      );
       showToast('Sesión iniciada', 'success');
-      navigation.getParent()?.goBack();
+      finishAuthFlow(navigation);
     } catch {
       showToast('Credenciales incorrectas', 'error');
     } finally {
@@ -80,11 +97,16 @@ export default function LoginScreen() {
     // que devuelva Cognito en vez del perfil de Google crudo. Migrar junto
     // con handleLogin (mismo User Pool para ambos, no por separado).
     setUser(
-      { id: googleProfile.id, email: googleProfile.email, name: googleProfile.name },
+      {
+        id: googleProfile.id,
+        email: googleProfile.email,
+        name: googleProfile.name,
+        avatar: googleProfile.picture,
+      },
       'mock-google-token',
     ).then(() => {
       showToast('Sesión iniciada con Google', 'success');
-      navigation.getParent()?.goBack();
+      finishAuthFlow(navigation);
     });
   }, [googleProfile, navigation, setUser, showToast]);
 
@@ -108,7 +130,7 @@ export default function LoginScreen() {
       'mock-apple-token',
     ).then(() => {
       showToast('Sesión iniciada con Apple', 'success');
-      navigation.getParent()?.goBack();
+      finishAuthFlow(navigation);
     });
   }, [appleProfile, navigation, setUser, showToast]);
 
@@ -128,7 +150,7 @@ export default function LoginScreen() {
       />
       <SafeAreaView style={styles.safe}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.flex}
         >
           <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
@@ -153,10 +175,18 @@ export default function LoginScreen() {
               placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!showPassword}
               wrapperStyle={styles.inputWrapper}
               accentColor={colors.accent}
               placeholderTextColor="rgba(255,255,255,0.6)"
+              rightIcon={
+                <MaterialCommunityIcons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color="rgba(255,255,255,0.7)"
+                />
+              }
+              onRightIconPress={() => setShowPassword(v => !v)}
             />
 
             <Button

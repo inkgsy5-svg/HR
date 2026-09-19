@@ -21,6 +21,7 @@ import { typography } from '@app/theme/typography';
 import { BARBERS, BarberReview } from '../data/barbers';
 import { SERVICES } from '../data/services';
 import ImageLightbox from '../components/ImageLightbox';
+import { useRequireAuth } from '@hooks/useRequireAuth';
 
 type NavProp = StackNavigationProp<BarberStackParamList>;
 type AppNavProp = StackNavigationProp<AppStackParamList>;
@@ -65,6 +66,7 @@ export default function BarberDetailScreen() {
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const requireAuth = useRequireAuth();
 
   const barber = BARBERS.find(b => b.id === params.id);
   if (!barber) return null;
@@ -75,18 +77,22 @@ export default function BarberDetailScreen() {
   }
 
   function handleBook() {
-    appNavigation.navigate('Booking', {
-      module: 'barber',
-      professional: {
-        id: barber!.id,
-        name: barber!.name,
-        specialty: barber!.specialty,
-        image: barber!.image,
-        heroImage: barber!.heroImage,
-        whatsapp: barber!.whatsapp,
-      },
-      services: SERVICES,
-    });
+    // Agendar requiere sesión iniciada; si no hay, se pide login y se
+    // retoma esta misma acción automáticamente (ver useRequireAuth).
+    requireAuth(() =>
+      appNavigation.navigate('Booking', {
+        module: 'barber',
+        professional: {
+          id: barber!.id,
+          name: barber!.name,
+          specialty: barber!.specialty,
+          image: barber!.image,
+          heroImage: barber!.heroImage,
+          whatsapp: barber!.whatsapp,
+        },
+        services: SERVICES,
+      }),
+    );
   }
 
   return (
