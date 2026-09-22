@@ -23,7 +23,8 @@
         "backgroundColor": "#111111"
       },
       "package": "com.haciendoloreal.hrapp",
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "extra": {
       "apiUrl": "http://localhost:3000",
@@ -33,7 +34,7 @@
         "webClientId": "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
       },
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "d7c15959-2398-4e36-95e3-b8265708e2a4"
       }
     },
     "plugins": [
@@ -46,7 +47,10 @@
           "photosPermission": "Usamos tus fotos para poner tu foto de perfil.",
           "cameraPermission": "Usamos la cámara para tomar tu foto de perfil."
         }
-      ]
-    ]
+      ],
+      "@sentry/react-native",
+      "expo-font"
+    ],
+    "owner": "caye_micky"
   }
 }
